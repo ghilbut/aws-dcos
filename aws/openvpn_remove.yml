@@ -1,0 +1,30 @@
+- name: Remove OpenVPN EC2 Instance
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    inifile:    "{{ inventory_dir }}/files/aws.ini"
+    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
+    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
+    region:     "{{ aws.region }}"
+    org:        "{{ aws.tags.organization }}"
+    owner:      "{{ aws.tags.owner }}"
+
+  tasks:
+  - name: remove ec2 instance
+    vars:
+      name: "ec2-{{ role }}-openvpn"
+      type: t2.micro
+    ec2:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      region:         "{{ region }}"
+      instance_ids:
+      - "{{ lookup('ini', 'ec2_instance section=openvpn file=' + inifile) }}"
+      state: absent
+      wait: yes
+    register: ec2
+
+  - name: remove host from ~/.ssh/known_hosts
+    known_hosts: name={{ lookup('ini', 'public_ip section=openvpn file=' + inifile) }} state=absent
+    ignore_errors: yes

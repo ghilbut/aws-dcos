@@ -1,0 +1,215 @@
+---
+- name: Create VPC Network
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    inifile:    "{{ inventory_dir }}/files/aws.ini"
+    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
+    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
+    region:     "{{ aws.region }}"
+    org:        "{{ aws.tags.organization }}"
+    owner:      "{{ aws.tags.owner }}"
+
+  tasks:
+  - name: create virtual private clouds
+    ec2_vpc_net:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      cidr_block:     "{{ aws.network.vpc.cidr }}"
+      name:           "vpc-{{ role }}"
+      region:         "{{ region }}"
+      tags:
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+    register: vpc
+  - name: save VPC ID to aws.ini
+    ini_file:
+      dest:    "{{ inifile }}"
+      section: network
+      option:  vpc
+      value:   "{{ vpc.vpc.id }}"
+
+  - name: creagte security groups
+    vars:
+      name: "{{ role }}-{{ item.suffix }}"
+    ec2_group:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      description:    "{{ item.description }}"
+      name:           "{{ name }}"
+      region:         "{{ region }}"
+      rules:          "{{ item.rules }}"
+      #tags:
+      #  Name:         "sg-{{ name }}"
+      #  organization: "{{ org }}"
+      #  owner:        "{{ owner }}"
+      vpc_id:         "{{ vpc.vpc.id }}"
+    with_items:
+    - suffix: public
+      rules:
+      - proto: all
+        from_port: all
+        to_port: all
+        cidr_ip: 0.0.0.0/0
+      description: "defualt public SecurityGroup for EC2 instances"
+    - suffix: private
+      rules:
+      - proto: all
+        from_port: all
+        to_port: all
+        cidr_ip: "{{ aws.network.vpc.cidr }}"
+      description: "defualt private SecurityGroup for EC2 instances"
+    - suffix: openvpn
+      # https://docs.openvpn.net/frequently-asked-questions/
+      rules:
+      - proto:     tcp
+        from_port: 22
+        to_port:   22
+        cidr_ip:   0.0.0.0/0
+      - proto:     tcp
+        from_port: 443
+        to_port:   443
+        cidr_ip:   0.0.0.0/0
+      - proto:     tcp
+        from_port: 943
+        to_port:   943
+        cidr_ip:   0.0.0.0/0
+      - proto:     udp
+        from_port: 1194
+        to_port:   1194
+        cidr_ip:   0.0.0.0/0
+      description: "openvpn SecurityGroup for EC2 instances"
+
+  - name: create subnet for network stubs. ex> NAT, VPC and etc.
+    vars:
+      subnet: "{{ aws.network.subnets.network }}"
+      az:     "{{ subnet.az }}"
+      cidr:   "{{ subnet.cidr }}"
+    ec2_vpc_subnet:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      az:             "{{ region + az }}"
+      cidr:           "{{ cidr }}"
+      region:         "{{ region }}"
+      tags:
+        Name:         "subnet-{{ role }}-network"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+      vpc_id:         "{{ vpc.vpc.id }}"
+    register: subnet_network
+  - name: save subnet ID for network to aws.ini
+    ini_file:
+      dest:    "{{ inifile }}"
+      section: network
+      option:  subnet_network
+      value:   "{{ subnet_network.subnet.id }}"
+
+  - name: create generic subnets
+    vars:
+      subnets: "{{ aws.network.subnets.general }}"
+    ec2_vpc_subnet:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      az:             "{{ region + item.az }}"
+      cidr:           "{{ item.cidr }}"
+      region:         "{{ region }}"
+      tags:
+        Name:         "subnet-{{ role }}-{{ item.suffix }}"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+      vpc_id:         "{{ vpc.vpc.id }}"
+    with_items: "{{ subnets }}"
+
+  - name: create internet gateway
+    ec2_vpc_igw:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      region:         "{{ region }}"
+      #tags:
+      #  Name:         "igw-{{ role }}"
+      #  organization: "{{ org }}"
+      #  owner:        "{{ owner }}"
+      vpc_id:         "{{ lookup('ini', 'vpc section=network file=' + inifile) }}"
+    register: igw
+  - name: save internet gateway ID to aws.ini
+    ini_file:
+      dest:    "{{ inifile }}"
+      section: network
+      option:  igw
+      value:   "{{ igw.gateway_id }}"
+
+  - name: set up public subnet route table
+    vars:
+      subnets: "{{ aws.network.subnets.public }}"
+    ec2_vpc_route_table:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      region:         "{{ region }}"
+      routes:
+      - dest:         0.0.0.0/0
+        gateway_id:   "{{ lookup('ini', 'igw section=network file=' + inifile) }}"
+      subnets:        "{{ subnets }}"
+      tags:
+        Name:         "route-{{ role }}-public"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+      vpc_id:         "{{ lookup('ini', 'vpc section=network file=' + inifile) }}"
+    register: route_public
+  - name: save public subnet route table ID to aws.ini
+    ini_file:
+      dest:    "{{ inifile }}"
+      section: network
+      option:  route_public
+      value:   "{{ route_public.route_table.id }}"
+
+  - name: create NAT gateway and allocate EIP
+    ec2_vpc_nat_gateway:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      region:         "{{ region }}"
+      subnet_id:      "{{ lookup('ini', 'subnet_network section=network file=' + inifile) }}"
+      wait:           yes
+      wait_timeout:   600
+    register: nat
+  - name: save NAT gateway ID to aws.ini
+    ini_file:
+      dest:    "{{ inifile }}"
+      section: network
+      option:  nat
+      value:   "{{ nat.nat_gateway_id }}"
+  # Ansible is not support making route table with Managed NAT Gateway.
+  # So, I should save network interface ID to bind NAT to route table.
+  - name: save NAT gateway network interface ID to aws.ini
+    ini_file:
+      dest:    "{{ inifile }}"
+      section: network
+      option:  nat_interface_id
+      value:   "{{ nat.nat_gateway_addresses[0].network_interface_id }}"
+
+  - name: set up private subnet route table
+    vars:
+      subnets: "{{ aws.network.subnets.private }}"
+    ec2_vpc_route_table:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      region:         "{{ region }}"
+      routes:
+      - dest:         0.0.0.0/0
+        # Ansible is not support making route table with Managed NAT Gateway.
+        # So, I should use network interface ID to bind NAT to route table.
+        interface_id: "{{ lookup('ini', 'nat_interface_id section=network file=' + inifile) }}"
+      subnets:        "{{ subnets }}"
+      tags:
+        Name:         "route-{{ role }}-private"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+      vpc_id:         "{{ lookup('ini', 'vpc section=network file=' + inifile) }}"
+    register: route_private
+  - name: save private subnet route table ID to aws.ini
+    ini_file:
+      dest:    "{{ inifile }}"
+      section: network
+      option:  route_private
+      value:   "{{ route_private.route_table.id }}"
+

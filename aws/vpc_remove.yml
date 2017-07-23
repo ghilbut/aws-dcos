@@ -1,0 +1,96 @@
+---
+- name: Remove VPC Network
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    inifile:       "{{ inventory_dir }}/files/aws.ini"
+    access_key:    "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
+    secret_key:    "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
+    region:        "{{ aws.region }}"
+    vpc:           "{{ lookup('ini', 'vpc section=network file=' + inifile) }}"
+    igw:           "{{ lookup('ini', 'igw section=network file=' + inifile) }}"
+    nat:           "{{ lookup('ini', 'nat section=network file=' + inifile) }}"
+    route_public:  "{{ lookup('ini', 'route_public  section=network file=' + inifile) }}"
+    route_private: "{{ lookup('ini', 'route_private section=network file=' + inifile) }}"
+
+  tasks:
+  - name: remove private subnet route table
+    ec2_vpc_route_table:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      region:         "{{ region }}"
+      lookup:         id
+      route_table_id: "{{ route_private }}"
+      state:          absent
+      vpc_id:         "{{ vpc }}"
+    ignore_errors: yes
+
+  - name: remove NAT gateway and release EIP
+    ec2_vpc_nat_gateway:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      nat_gateway_id: "{{ nat }}"
+      region:         "{{ region }}"
+      release_eip:    yes
+      state:          absent
+      wait:           yes
+      wait_timeout:   600
+    ignore_errors: yes
+
+  - name: remove public subnet route table
+    ec2_vpc_route_table:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      region:         "{{ region }}"
+      lookup:         id
+      route_table_id: "{{ route_public }}"
+      state:          absent
+      vpc_id:         "{{ vpc }}"
+    ignore_errors: yes
+
+  - name: remove internet gateway
+    ec2_vpc_igw:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      region:         "{{ region }}"
+      state:          absent
+      vpc_id:         "{{ vpc }}"
+    ignore_errors: yes
+
+  - name: remove subnets
+    vars:
+      subnets: "{{ aws.network.subnets.public + aws.network.subnets.private }}"
+    ec2_vpc_subnet:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      cidr:           "{{ item }}"
+      region:         "{{ region }}"
+      state:          absent
+      vpc_id:         "{{ vpc }}"
+    with_items: "{{ subnets }}"
+    ignore_errors: yes
+
+  - name: remove security groups
+    ec2_group:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      name:           "{{ role }}-{{ item }}"
+      region:         "{{ region }}"
+      state:          absent
+      vpc_id:         "{{ vpc }}"
+    with_items:
+    - public
+    - private
+    - openvpn
+    ignore_errors: yes
+
+  - name: remove virtual private clouds
+    ec2_vpc_net:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      cidr_block: 10.0.0.0/16
+      name: "vpc-{{ role }}"
+      region: "{{ region }}"
+      state: absent
+    ignore_errors: yes

@@ -1,0 +1,55 @@
+[VPN]
+10.1.10.4  ansible_user=openvpnas ansible_ssh_private_key_file=files/platform.pem
+
+[ami_centos]
+10.1.10.254
+
+[ami_ubuntu]
+10.1.10.254
+
+[dcos_bootstrap]
+10.1.255.250
+
+[dcos_master]
+10.1.255.249
+10.1.255.248
+10.1.255.247
+
+[dcos_slave_public]
+
+[dcos_slave_private]
+10.1.11.4
+10.1.12.4
+10.1.255.11
+10.1.255.12
+10.1.255.13
+
+[dcos_slave:children]
+dcos_slave_public
+dcos_slave_private
+
+[dcos:children]
+dcos_bootstrap
+dcos_master
+dcos_slave
+
+
+[marathon_lb]
+10.1.0.4
+10.1.1.4
+
+[centos:children]
+ami_centos
+dcos
+
+[centos:vars]
+ansible_user = ec2-user
+ansible_ssh_private_key_file = files/platform.pem
+
+[ubuntu:children]
+ami_ubuntu
+marathon_lb
+
+[ubuntu:vars]
+ansible_user = ubuntu
+ansible_ssh_private_key_file = files/platform.pem

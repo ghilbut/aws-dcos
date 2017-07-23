@@ -1,0 +1,101 @@
+---
+- name: Create OpenVPN EC2 Instance
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    inifile:    "{{ inventory_dir }}/files/aws.ini"
+    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
+    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
+    region:     "{{ aws.region }}"
+    org:        "{{ aws.tags.organization }}"
+    owner:      "{{ aws.tags.owner }}"
+    amis:
+      # 20170723 (SUN)
+      # https://docs.openvpn.net/how-to-tutorialsguides/virtual-platforms/amazon-ec2-appliance-ami-quick-start-guide/
+      ap-northeast-1: ami-eb9c8f8c
+      ap-northeast-2: ami-d4459aba
+      ap-south-1:     ami-fca0de93
+      ap-southeast-1: ami-76ef6715
+      ap-southeast-2: ami-f981929a
+      ca-central-1:   ami-9d912ef9
+      eu-central-1:   ami-906ccdff
+      eu-west-1:      ami-015fbb78
+      eu-west-2:      ami-022f3966
+      sa-east-1:      ami-349af058
+      us-east-1:      ami-d7576bc1
+      us-east-2:      ami-5f35143a
+      us-west-1:      ami-ee89a58e
+      us-west-2:      ami-d10819a8
+    ebs_optimized: "{% if type.startswith('t') %} yes {% else %} no {% endif %}"
+
+  tasks:
+  - name: create ec2 instance
+    vars:
+      name: "ec2-{{ role }}-openvpn"
+      type: t2.micro
+    ec2:
+      assign_public_ip: yes
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      ebs_optimized:  "{{ ebs_optimized|bool }}"
+      group:          "{{ role }}-openvpn"
+      image:          "{{ amis[region] }}"
+      instance_tags: 
+        Name:         "{{ name }}"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+      instance_type:  "{{ type }}"
+      key_name:       "{{ aws.ec2.key_name }}"
+      private_ip:     "{{ groups['VPN'][0] }}"
+      region:         "{{ region }}"
+      source_dest_check: no
+      user_data: |
+                 public_hostname=openvpn
+                 admin_user=openvpn
+                 admin_pw=openvpn         
+                 reroute_gw=1
+                 reroute_dns=1
+      volumes:
+      - delete_on_termination: true
+        device_name: /dev/sda1
+        name: "{{ name }}"
+        volume_size: 8
+        volume_type: gp2
+      vpc_subnet_id: "{{ lookup('ini', 'subnet_network section=network file=' + inifile) }}"
+      wait: yes
+    register: ec2
+
+  - name: save openvpn instance ID to aws.ini
+    ini_file:
+      dest:    "{{ inifile }}"
+      section: openvpn
+      option:  ec2_instance
+      value:   "{{ ec2.instances[0].id }}"
+  - name: save openvpn public_ip to aws.ini
+    ini_file:
+      dest:    "{{ inifile }}"
+      section: openvpn
+      option:  public_ip
+      value:   "{{ ec2.instances[0].public_ip }}"
+
+  - name: remove host from ~/.ssh/known_hosts
+    known_hosts: name={{ item.private_ip }} state=absent
+    with_items: "{{ ec2.instances }}"
+  - name: remove host from ~/.ssh/known_hosts
+    known_hosts: name={{ item.public_ip }} state=absent
+    with_items: "{{ ec2.instances }}"
+
+  - name: wait for instance started.
+    wait_for: host={{ item.public_ip }} port=22 delay=60 state=started
+    with_items: "{{ ec2.instances }}"
+
+  - name: update and upgrade apt packages
+    vars:
+      ansible_ssh_private_key_file: "files/{{ aws.ec2.key_name }}.pem"
+    apt:
+      update_cache: yes
+      upgrade: dist
+    delegate_to: "{{ lookup('ini', 'public_ip section=openvpn file=' + inifile) }}"
+    remote_user: openvpnas
+    become: yes

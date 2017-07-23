@@ -1,0 +1,44 @@
+---
+role: us
+aws:
+  region: us-east-2
+  tags:
+    organization: platform
+    owner:        ghilbut
+  network:
+    vpc:
+      cidr: 10.1.0.0/16
+    subnets:
+      network:
+        az:     a
+        cidr:   10.1.10.0/24
+      general:
+      - az:     a
+        cidr:   10.1.0.0/24
+        suffix: public-0a
+      - az:     c
+        cidr:   10.1.1.0/24
+        suffix: public-1c
+      - az:     a
+        cidr:   10.1.11.0/24
+        suffix: private-11a
+      - az:     c
+        cidr:   10.1.12.0/24
+        suffix: private-12c
+      - az:     c
+        cidr:   10.1.255.0/24
+        suffix: mgmt
+      public:
+      - 10.1.0.0/24
+      - 10.1.1.0/24
+      - 10.1.10.0/24
+      private:
+      - 10.1.11.0/24
+      - 10.1.12.0/24
+      - 10.1.255.0/24
+  ami:
+    centos: ami-0d7c5868
+    ubuntu: ami-8b92b4ee
+    ip_address: 10.1.255.254
+  ec2:
+    key_name: platform

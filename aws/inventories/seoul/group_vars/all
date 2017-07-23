@@ -1,0 +1,45 @@
+---
+role: seoul
+aws:
+  region: ap-northeast-2
+  tags:
+    organization: platform
+    owner:        ghilbut
+  network:
+    vpc:
+      cidr: 10.0.0.0/16
+    subnets:
+      network:
+        az:     a
+        cidr:   10.0.10.0/24
+      general:
+      - az:     a
+        cidr:   10.0.0.0/24
+        suffix: public-0a
+      - az:     c
+        cidr:   10.0.1.0/24
+        suffix: public-1c
+      - az:     a
+        cidr:   10.0.11.0/24
+        suffix: private-11a
+      - az:     c
+        cidr:   10.0.12.0/24
+        suffix: private-12c
+      - az:     c
+        cidr:   10.0.255.0/24
+        suffix: mgmt
+      public:
+      - 10.0.0.0/24
+      - 10.0.1.0/24
+      - 10.0.10.0/24
+      private:
+      - 10.0.11.0/24
+      - 10.0.12.0/24
+      - 10.0.255.0/24
+  ami:
+    vpn:    ami-d4459aba
+    centos: ami-008a596e
+    ubuntu: ami-94d20dfa
+    ip_address: 10.0.255.254
+  ec2:
+    key_name: platform
