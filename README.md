@@ -8,7 +8,7 @@ $ sudo apt-get install -y python2.7
 $ sudo ln -s /usr/bin/python2.7 /usr/bin/python
 ```
 
-## Install Ansible v2.3.1.0-1 for AWS
+## Install Ansible v2.3.1.0-1
 
 ```bash
 $ sudo apt-get install -y python-setuptools build-essential python-dev libffi-dev libssl-dev
