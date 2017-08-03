@@ -1,5 +1,5 @@
 ---
-role: seoul
+role: platform
 aws:
   region: ap-northeast-2
   tags:
