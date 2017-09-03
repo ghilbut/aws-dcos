@@ -9,37 +9,37 @@ aws:
     vpc:
       cidr: 10.0.0.0/16
     subnets:
-      network:
-        az:     a
-        cidr:   10.0.10.0/24
-      general:
+      mgmt:
       - az:     a
         cidr:   10.0.0.0/24
-        suffix: public-0a
+        suffix: mgmt-0a
       - az:     c
         cidr:   10.0.1.0/24
-        suffix: public-1c
+        suffix: mgmt-1c
+      network:
       - az:     a
-        cidr:   10.0.11.0/24
-        suffix: private-11a
+        cidr:   10.0.8.0/24
+        suffix: network-a
       - az:     c
-        cidr:   10.0.12.0/24
-        suffix: private-12c
+        cidr:   10.0.9.0/24
+        suffix: network-c
+      private:
+      - az:     a
+        cidr:   10.0.10.0/24
+        suffix: private-10a
+      - az:     c
+        cidr:   10.0.11.0/24
+        suffix: private-11c
+      public:
+      - az:     a
+        cidr:   10.0.254.0/24
+        suffix: public-254a
       - az:     c
         cidr:   10.0.255.0/24
-        suffix: mgmt
-      public:
-      - 10.0.0.0/24
-      - 10.0.1.0/24
-      - 10.0.10.0/24
-      private:
-      - 10.0.11.0/24
-      - 10.0.12.0/24
-      - 10.0.255.0/24
+        suffix: public-255c
   ami:
-    vpn:    ami-d4459aba
     centos: ami-008a596e
     ubuntu: ami-94d20dfa
-    ip_address: 10.0.255.254
+    ip_address: 10.0.0.254
   ec2:
     key_name: platform

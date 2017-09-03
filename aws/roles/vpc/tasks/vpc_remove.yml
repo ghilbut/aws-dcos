@@ -1,0 +1,15 @@
+---
+- name: remove virtual private clouds
+  ec2_vpc_net:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    cidr_block:     "{{ cidr_block }}"
+    name:           "{{ name }}"
+    region:         "{{ region }}"
+    state:          absent
+- name: remove VPC ID from aws.ini file
+  ini_file:
+    dest:    "{{ inifile }}"
+    section: network
+    option:  vpc
+    state:   absent

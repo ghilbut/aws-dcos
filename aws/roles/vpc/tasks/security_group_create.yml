@@ -1,0 +1,11 @@
+---
+- name: create security group
+  ec2_group:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    description:    "{{ desc }}"
+    name:           "{{ name }}"
+    region:         "{{ region }}"
+    rules:          "{{ item.rules }}"
+    #tags:           "{{ sg_tags }}"
+    vpc_id:         "{{ vpc_id }}"

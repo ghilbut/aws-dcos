@@ -9,88 +9,59 @@
     secret_key:    "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
     region:        "{{ aws.region }}"
     vpc:           "{{ lookup('ini', 'vpc section=network file=' + inifile) }}"
-    igw:           "{{ lookup('ini', 'igw section=network file=' + inifile) }}"
-    nat:           "{{ lookup('ini', 'nat section=network file=' + inifile) }}"
-    route_public:  "{{ lookup('ini', 'route_public  section=network file=' + inifile) }}"
-    route_private: "{{ lookup('ini', 'route_private section=network file=' + inifile) }}"
 
   tasks:
-  - name: remove private subnet route table
-    ec2_vpc_route_table:
-      aws_access_key: "{{ access_key }}"
-      aws_secret_key: "{{ secret_key }}"
-      region:         "{{ region }}"
-      lookup:         id
-      route_table_id: "{{ route_private }}"
-      state:          absent
-      vpc_id:         "{{ vpc }}"
+  - name: remove private route table
+    vars:
+      inioption: "route_table_private_{{ item }}"
+    include: roles/vpc/tasks/route_table_remove.yml
+    with_items: "{{ aws.network.subnets.network | map(attribute='az') | list }}"
     ignore_errors: yes
 
-  - name: remove NAT gateway and release EIP
-    ec2_vpc_nat_gateway:
-      aws_access_key: "{{ access_key }}"
-      aws_secret_key: "{{ secret_key }}"
-      nat_gateway_id: "{{ nat }}"
-      region:         "{{ region }}"
-      release_eip:    yes
-      state:          absent
-      wait:           yes
-      wait_timeout:   600
+  - name: remove public route table
+    vars:
+      inioption: route_table_public
+    include: roles/vpc/tasks/route_table_remove.yml
     ignore_errors: yes
 
-  - name: remove public subnet route table
-    ec2_vpc_route_table:
-      aws_access_key: "{{ access_key }}"
-      aws_secret_key: "{{ secret_key }}"
-      region:         "{{ region }}"
-      lookup:         id
-      route_table_id: "{{ route_public }}"
-      state:          absent
-      vpc_id:         "{{ vpc }}"
+  - name: remove NAT gateways
+    vars:
+      az:  "{{ item }}"
+      nat: "{{ lookup('ini', 'nat_' + az + ' section=network file=' + inifile) }}"
+    include: roles/vpc/tasks/nat_remove.yml
+    with_items: "{{ aws.network.subnets.network | map(attribute='az') | list }}"
     ignore_errors: yes
 
   - name: remove internet gateway
-    ec2_vpc_igw:
-      aws_access_key: "{{ access_key }}"
-      aws_secret_key: "{{ secret_key }}"
-      region:         "{{ region }}"
-      state:          absent
-      vpc_id:         "{{ vpc }}"
+    include: roles/vpc/tasks/igw_remove.yml
     ignore_errors: yes
 
   - name: remove subnets
     vars:
-      subnets: "{{ aws.network.subnets.public + aws.network.subnets.private }}"
-    ec2_vpc_subnet:
-      aws_access_key: "{{ access_key }}"
-      aws_secret_key: "{{ secret_key }}"
-      cidr:           "{{ item }}"
-      region:         "{{ region }}"
-      state:          absent
-      vpc_id:         "{{ vpc }}"
-    with_items: "{{ subnets }}"
+      cidr: "{{ item.cidr }}"
+    include: roles/vpc/tasks/subnet_remove.yml
+    with_items: "{{ aws.network.subnets.mgmt + aws.network.subnets.network + aws.network.subnets.private + aws.network.subnets.public }}"
     ignore_errors: yes
 
+  - name: remove network subnet IDs from aws.ini file
+    ini_file:
+      dest:     "{{ inifile }}"
+      section:  network
+      option:   "subnet_network_{{ item }}"
+      state:    absent
+    with_items: "{{ aws.network.subnets.network | map(attribute='az') | list }}"
+
   - name: remove security groups
-    ec2_group:
-      aws_access_key: "{{ access_key }}"
-      aws_secret_key: "{{ secret_key }}"
-      name:           "{{ role }}-{{ item }}"
-      region:         "{{ region }}"
-      state:          absent
-      vpc_id:         "{{ vpc }}"
+    include: roles/vpc/tasks/security_group_remove.yml
     with_items:
-    - public
-    - private
     - openvpn
+    - private
+    - public
     ignore_errors: yes
 
   - name: remove virtual private clouds
-    ec2_vpc_net:
-      aws_access_key: "{{ access_key }}"
-      aws_secret_key: "{{ secret_key }}"
-      cidr_block: 10.0.0.0/16
-      name: "vpc-{{ role }}"
-      region: "{{ region }}"
-      state: absent
+    vars:
+      cidr_block: "{{ aws.network.vpc.cidr }}"
+      name:       "vpc-{{ role }}"
+    include: roles/vpc/tasks/vpc_remove.yml
     ignore_errors: yes

@@ -1,0 +1,17 @@
+---
+- name: create route table
+  ec2_vpc_route_table:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    region:         "{{ region }}"
+    routes:         "{{ routes }}"
+    subnets:        "{{ subnets }}"
+    tags:           "{{ route_tags }}"
+    vpc_id:         "{{ vpc_id }}"
+  register: route
+- name: save public route table ID to aws.ini
+  ini_file:
+    dest:    "{{ inifile }}"
+    section: network
+    option:  "{{ inioption }}"
+    value:   "{{ route.route_table.id }}"

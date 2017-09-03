@@ -1,0 +1,14 @@
+---
+- name: remove internet gateway
+  ec2_vpc_igw:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    region:         "{{ region }}"
+    state:          absent
+    vpc_id:         "{{ vpc }}"
+- name: remove internet gateway ID to aws.ini file
+  ini_file:
+    dest:    "{{ inifile }}"
+    section: network
+    option:  igw
+    state:   absent

@@ -1,0 +1,9 @@
+---
+- name: remove security group
+  ec2_group:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    name:           "{{ role }}-{{ item }}"
+    region:         "{{ region }}"
+    state:          absent
+    vpc_id:         "{{ vpc }}"

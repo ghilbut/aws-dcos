@@ -1,0 +1,16 @@
+---
+- name: remove route table
+  ec2_vpc_route_table:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    region:         "{{ region }}"
+    lookup:         id
+    route_table_id: "{{ lookup('ini', inioption + ' section=network file=' + inifile) }}"
+    state:          absent
+    vpc_id:         "{{ vpc }}"
+- name: remove route table ID from aws.ini file
+  ini_file:
+    dest:    "{{ inifile }}"
+    section: network
+    option:  "{{ inioption }}"
+    state:   absent

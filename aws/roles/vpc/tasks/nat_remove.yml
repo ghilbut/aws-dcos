@@ -1,0 +1,23 @@
+---
+- name: remove NAT gateway
+  ec2_vpc_nat_gateway:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    nat_gateway_id: "{{ nat }}"
+    region:         "{{ region }}"
+    release_eip:    yes
+    state:          absent
+    wait:           yes
+    wait_timeout:   600
+- name: remove NAT gateway ID to aws.ini file
+  ini_file:
+    dest:    "{{ inifile }}"
+    section: network
+    option:  "nat_{{ az }}"
+    state:   absent
+- name: remove NAT gateway network interface ID to aws.ini file
+  ini_file:
+    dest:    "{{ inifile }}"
+    section: network
+    option:  "nat_{{ az }}_interface_id"
+    state:   absent
