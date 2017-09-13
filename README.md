@@ -12,6 +12,8 @@ $ chmod 600 ~/.ssh/config
 ```
 
 ## git-lfs (git large file storage)
+
+### Install
 ```bash
 $ cd /tmp
 $ curl -OL https://github.com/git-lfs/git-lfs/releases/download/v2.2.1/git-lfs-linux-amd64-2.2.1.tar.gz
@@ -19,6 +21,15 @@ $ tar -vxzf git-lfs-linux-amd64-2.2.1.tar.gz
 $ cd git-lfs-2.2.1
 $ sudo ./install.sh
 $ git lfs install
+```
+
+### Manage large file types
+```bash
+$ cd /project/dir
+$ git lfs track "*.tar.bz"
+$ git lfs track "*.tgz"
+$ git lfs track "*.zip"
+$ git add .gitattributes
 ```
 
 # Ubuntu 16.04 LTS
