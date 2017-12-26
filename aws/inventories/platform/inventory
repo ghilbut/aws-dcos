@@ -1,5 +1,6 @@
 [VPN]
-10.0.10.4  ansible_user=openvpnas ansible_ssh_private_key_file=files/platform.pem
+10.0.8.4  ansible_user=openvpnas ansible_ssh_private_key_file=files/platform.pem
+10.0.9.4  ansible_user=openvpnas ansible_ssh_private_key_file=files/platform.pem
 
 [ami_centos]
 10.0.10.254

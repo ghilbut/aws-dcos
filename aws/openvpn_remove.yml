@@ -1,3 +1,4 @@
+---
 - name: Remove OpenVPN EC2 Instance
   hosts: localhost
   connection: local

@@ -1,0 +1,56 @@
+---
+- name: create ec2 instance
+  ec2:
+    assign_public_ip: yes
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    ebs_optimized:  "{{ ebs_optimized|bool }}"
+    group:          "{{ role }}-openvpn"
+    image:          "{{ amis[region] }}"
+    instance_tags:  "{{ instance_tags }}"
+    instance_type:  "{{ type }}"
+    key_name:       "{{ aws.ec2.key_name }}"
+    private_ip:     "{{ private_ip }}"
+    region:         "{{ region }}"
+    source_dest_check: no
+    user_data: |
+               public_hostname=openvpn
+               admin_user=openvpn
+               admin_pw=openvpn
+               reroute_gw=1
+               reroute_dns=1
+    volumes:
+    - delete_on_termination: true
+      device_name: /dev/sda1
+      name: "{{ instance_tags.Name }}"
+      volume_size: 8
+      volume_type: gp2
+    vpc_subnet_id: "{{ lookup('ini', 'subnet_network_' + az + ' section=network file=' + inifile) }}"
+    wait: yes
+  register: ec2
+
+- set_fact:
+    instance_id: "{{ ec2.instances[0].id }}"
+    private_ip:  "{{ private_ip }}"
+    public_ip:   "{{ ec2.instances[0].public_ip }}"
+
+- name: save openvpn instance ID to aws.ini file
+  ini_file:
+    dest:    "{{ inifile }}"
+    section: network
+    option:  "openvpn_{{ az }}_instance_id"
+    value:   "{{ instance_id }}"
+- name: save openvpn public_ip to aws.ini file
+  ini_file:
+    dest:    "{{ inifile }}"
+    section: network
+    option:  "openvpn_{{ az }}_public_ip"
+    value:   "{{ public_ip }}"
+
+- name: remove host from ~/.ssh/known_hosts
+  known_hosts: name={{ private_ip }} state=absent
+- name: remove host from ~/.ssh/known_hosts
+  known_hosts: name={{ public_ip }} state=absent
+
+- name: wait for instance started.
+  wait_for: host={{ public_ip }} port=22 delay=60 state=started
