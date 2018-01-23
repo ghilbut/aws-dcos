@@ -1,4 +1,4 @@
-# Pre-flight
+# A. Preflight
 
 ```bash
 $ mkdir -p inventories/{role}/files
@@ -13,29 +13,29 @@ EOF
 $ cp ~/Downloads/{role}.pem files/{role}.pem
 ```
 
-# Create Network Environments
+# B. Create Network Environments
 
-## Create VPC
+## 1. Create VPC
 
 ```bash
 $ ansible-playbook -i inventories/{role}/ vpc_create.yml
 ```
 
-## Create OpenVPN
+## 2. Create OpenVPN
 
-### Create EC2 Instance
+### 2-1. Create EC2 Instance
 
 ```bash
 $ ansible-playbook -i inventories/{role}/ -e zone={zone} openvpn_create.yml
 ```
 
-### Setup Docker Environment
+### 2-2. Setup Docker Environment
 
 ```bash
 $ ansible-playbook -i inventories/{role}/ -e zone={zone} openvpn_docker.yml
 ```
 
-### Install and Run OpenVPN
+### 2-3. Install and Run OpenVPN
 
 https://rampart81.github.io/post/openvpn_aws/
 
@@ -90,15 +90,15 @@ https://tunnelblick.net/
 $ ssh -i files/{role}.pem ubuntu@{ec2_private_ip}
 ```
 
-# Remove Network Environments
+# C. Remove Network Environments
 
-## Remove OpenVPN
+## 1. Remove OpenVPN
 
 ```bash
 $ ansible-playbook -i inventories/{role}/ -e zone={zone} openvpn_remove.yml
 ```
 
-## Remove VPC
+## 2. Remove VPC
 
 ```bash
 $ ansible-playbook -i inventories/{role}/ vpc_remove.yml
