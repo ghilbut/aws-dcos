@@ -1,0 +1,72 @@
+---
+- name: Install Docker on OpenVPN EC2 Instance
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    ansible_ssh_private_key_file: "files/{{ aws.ec2.key_name }}.pem"
+    ansible_python_interpreter:   /usr/bin/python3
+    inifile:     "{{ inventory_dir }}/files/aws.ini"
+    public_ip:   "{{ lookup('ini', 'public_ip_' + zone + ' section=openvpn file=' + inifile) }}"
+    lsb_release: xenial
+
+  tasks:
+  - name: update the apt packages index
+    apt:
+      update_cache: yes
+    #shell: apt-get update
+    delegate_to: "{{ public_ip }}"
+    remote_user: ubuntu
+    become: yes
+
+  - name: install packages to allow apt to use a repository over HTTPS
+    apt:
+      name: "{{ item }}"
+    with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+    delegate_to: "{{ public_ip }}"
+    remote_user: ubuntu
+    become: yes
+
+  - name: add Docker’s official GPG key
+    shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    delegate_to: "{{ public_ip }}"
+    remote_user: ubuntu
+    become: yes
+
+  - name: set up the stable repository
+    apt_repository:
+      repo: "{{ 'deb [arch=amd64] https://download.docker.com/linux/ubuntu ' + lsb_release + ' stable' }}"
+    delegate_to: "{{ public_ip }}"
+    remote_user: ubuntu
+    become: yes
+
+  - name: update the apt package index
+    apt:
+      update_cache: yes
+    delegate_to: "{{ public_ip }}"
+    remote_user: ubuntu
+    become: yes
+
+  - name: install the latest version of Docker CE
+    apt:
+      name: docker-ce
+    delegate_to: "{{ public_ip }}"
+    remote_user: ubuntu
+    become: yes
+
+  - name: make ubuntu can use docker without sudo
+    shell: "usermod -aG docker ubuntu"
+    delegate_to: "{{ public_ip }}"
+    remote_user: ubuntu
+    become: yes
+
+  - name: upgrade apt packages
+    apt:
+      upgrade: dist
+    delegate_to: "{{ public_ip }}"
+    remote_user: ubuntu
+    become: yes

@@ -102,6 +102,9 @@ ENV/
 
 
 
+# vim
+.*.swp
+
 # macosx
 .DS_Store
 

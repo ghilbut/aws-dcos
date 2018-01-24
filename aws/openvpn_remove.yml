@@ -10,22 +10,43 @@
     region:     "{{ aws.region }}"
     org:        "{{ aws.tags.organization }}"
     owner:      "{{ aws.tags.owner }}"
+    suffix:     "{{ zone }}"
+    zones:      "{{ aws.network.subnets.network | map(attribute='az') | list }}"
 
   tasks:
+  - name: check zone is exists
+    meta: end_play
+    when: "not zone in zones"
+
   - name: remove ec2 instance
     vars:
-      name: "ec2-{{ role }}-openvpn"
+      name: "ec2-{{ role }}-openvpn-{{ suffix }}"
       type: t2.micro
     ec2:
       aws_access_key: "{{ access_key }}"
       aws_secret_key: "{{ secret_key }}"
       region:         "{{ region }}"
       instance_ids:
-      - "{{ lookup('ini', 'ec2_instance section=openvpn file=' + inifile) }}"
+      - "{{ lookup('ini', 'ec2_instance_' + suffix + ' section=openvpn file=' + inifile) }}"
       state: absent
       wait: yes
     register: ec2
 
   - name: remove host from ~/.ssh/known_hosts
-    known_hosts: name={{ lookup('ini', 'public_ip section=openvpn file=' + inifile) }} state=absent
+    known_hosts: name={{ lookup('ini', 'public_ip_' + suffix + ' section=openvpn file=' + inifile) }} state=absent
     ignore_errors: yes
+
+  - name: remove ec2 instance ID from aws.ini file
+    ini_file:
+      dest:     "{{ inifile }}"
+      section:  openvpn
+      option:   "ec2_instance_{{ suffix }}"
+      state:    absent
+
+  - name: remove public ip from aws.ini file
+    ini_file:
+      dest:     "{{ inifile }}"
+      section:  openvpn
+      option:   "public_ip_{{ suffix }}"
+      state:    absent
+

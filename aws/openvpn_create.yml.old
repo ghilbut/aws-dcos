@@ -11,21 +11,22 @@
     org:        "{{ aws.tags.organization }}"
     owner:      "{{ aws.tags.owner }}"
     amis:
-      # Ubuntu Server 16.04 LTS (HVM), SSD Volume Type
-      #ap-northeast-1: 
-      ap-northeast-2: ami-67973709
-      #ap-south-1:     
-      #ap-southeast-1: 
-      #ap-southeast-2: 
-      #ca-central-1:   
-      #eu-central-1:   
-      #eu-west-1:      
-      #eu-west-2:      
-      #sa-east-1:      
-      #us-east-1:      
-      #us-east-2:      
-      #us-west-1:      
-      #us-west-2:      
+      # 20170723 (SUN)
+      # https://docs.openvpn.net/how-to-tutorialsguides/virtual-platforms/amazon-ec2-appliance-ami-quick-start-guide/
+      ap-northeast-1: ami-eb9c8f8c
+      ap-northeast-2: ami-d4459aba
+      ap-south-1:     ami-fca0de93
+      ap-southeast-1: ami-76ef6715
+      ap-southeast-2: ami-f981929a
+      ca-central-1:   ami-9d912ef9
+      eu-central-1:   ami-906ccdff
+      eu-west-1:      ami-015fbb78
+      eu-west-2:      ami-022f3966
+      sa-east-1:      ami-349af058
+      us-east-1:      ami-d7576bc1
+      us-east-2:      ami-5f35143a
+      us-west-1:      ami-ee89a58e
+      us-west-2:      ami-d10819a8
     ebs_optimized: "{% if type.startswith('t') %} yes {% else %} no {% endif %}"
     suffix: "{{ zone }}"
     zones:  "{{ aws.network.subnets.network | map(attribute='az') | list }}"
@@ -90,3 +91,21 @@
   - name: wait for instance started.
     wait_for: host={{ item.public_ip }} port=22 delay=60 state=started
     with_items: "{{ ec2.instances }}"
+
+  - name: wait for lock the administration directory (/var/lib/dpkg/)
+    pause:
+      minutes: 1
+    when: no
+
+  - name: update and upgrade apt packages
+    vars:
+      ansible_ssh_private_key_file: "files/{{ aws.ec2.key_name }}.pem"
+    apt:
+      update_cache: yes
+      upgrade: dist
+    delegate_to: "{{ item.public_ip }}"
+    remote_user: openvpnas
+    become: yes
+    with_items: "{{ ec2.instances }}"
+    when: no
+
