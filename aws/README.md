@@ -82,11 +82,15 @@ $ exit
 
 ### 2-4. Modify client configuration
 
+**download OpenVPN client configuation**
+
 ```bash
 $ scp -i files/platform.pem ubuntu@{ec2_public_ip}:/home/ubuntu/{name}.ovpn ~/Downloads/{name}.ovpn
 ```
 
-From: [How to change route rules](https://www.void.gr/kargig/blog/2010/03/25/using-openvpn-to-route-a-specific-subnet-to-the-vpn/)
+**download client for MacOS X**
+
+https://tunnelblick.net/
 
 **before connected**
 ```
@@ -139,6 +143,9 @@ default            192.168.0.1        UGSc            6        5     en0
 ```
 
 **change route option**
+
+From: [How to change route rules](https://www.void.gr/kargig/blog/2010/03/25/using-openvpn-to-route-a-specific-subnet-to-the-vpn/)
+
 ```bash
 $ vi {name}.ovpn
 
@@ -174,8 +181,6 @@ default            192.168.0.1        UGSc           39       10     en0
 239.255.255.250    1:0:5e:7f:ff:fa    UHmLWI          0      400     en0
 255.255.255.255/32 link#5             UCS             0        0     en0
 ```
-
-https://tunnelblick.net/
 
 ```bash
 $ ssh -i files/{role}.pem ubuntu@{ec2_private_ip}
