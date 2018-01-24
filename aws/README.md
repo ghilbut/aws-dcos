@@ -144,18 +144,12 @@ default            192.168.0.1        UGSc            6        5     en0
 
 **change route option**
 
-From: [How to change route rules](https://www.void.gr/kargig/blog/2010/03/25/using-openvpn-to-route-a-specific-subnet-to-the-vpn/)
+From: [How to change route rules](https://serverfault.com/questions/631037/how-to-route-only-specific-openvpn-traffic-through-a-openvpn-based-on-ip-filteri)
 
 ```bash
 $ vi {name}.ovpn
-
-#client
-tls-client
-
 ...
-
 #redirect-gateway def1
-ifconfig 192.168.255.6 192.168.255.5
 route 10.0.0.0 255.0.0.0
 ```
 
@@ -165,20 +159,21 @@ Routing tables
 
 Internet:
 Destination        Gateway            Flags        Refs      Use   Netif Expire
-default            192.168.0.1        UGSc           39       10     en0
+default            192.168.21.1       UGSc           39        3     en0
 10                 192.168.255.5      UGSc            1        0   utun3
 127                127.0.0.1          UCS             0        0     lo0
-127.0.0.1          127.0.0.1          UH              4  5447705     lo0
+127.0.0.1          127.0.0.1          UH              4  5464157     lo0
 169.254            link#5             UCS             0        0     en0
-192.168.0          link#5             UCS             0        0     en0
-192.168.0.1/32     link#5             UCS             1        0     en0
-192.168.0.1        90:9f:33:4a:79:7e  UHLWIir        39     2948     en0   1184
-192.168.0.111/32   link#5             UCS             1        0     en0
-192.168.0.111      78:4f:43:60:7f:72  UHLWI           0        1     lo0
-192.168.255.5      192.168.255.6      UH              2        0   utun3
+192.168.21         link#5             UCS             1        0     en0
+192.168.21.1/32    link#5             UCS             1        0     en0
+192.168.21.1       0:9:f:9:0:d        UHLWIir        41       61     en0   1191
+192.168.21.64/32   link#5             UCS             0        0     en0
+192.168.21.255     ff:ff:ff:ff:ff:ff  UHLWbI          0        1     en0
+192.168.255.1/32   192.168.255.5      UGSc            0        0   utun3
+192.168.255.5      192.168.255.6      UH              3        0   utun3
 224.0.0/4          link#5             UmCS            2        0     en0
 224.0.0.251        1:0:5e:0:0:fb      UHmLWI          0        0     en0
-239.255.255.250    1:0:5e:7f:ff:fa    UHmLWI          0      400     en0
+239.255.255.250    1:0:5e:7f:ff:fa    UHmLWI          0       12     en0
 255.255.255.255/32 link#5             UCS             0        0     en0
 ```
 
