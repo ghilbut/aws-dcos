@@ -85,7 +85,7 @@ $ exit
 **download OpenVPN client configuation**
 
 ```bash
-$ scp -i files/platform.pem ubuntu@{ec2_public_ip}:/home/ubuntu/{name}.ovpn ~/Downloads/{name}.ovpn
+$ scp -i files/{role}.pem ubuntu@{ec2_public_ip}:/home/ubuntu/{name}.ovpn ~/Downloads/{name}.ovpn
 ```
 
 **download client for MacOS X**
