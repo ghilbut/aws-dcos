@@ -1,5 +1,5 @@
 ---
-- name: Make common environments for DC/OS cluster
+- name: Install InfluxDB servers
   hosts: influxdb
   gather_facts: no
   become: yes

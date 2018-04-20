@@ -1,0 +1,73 @@
+{
+  "id": "/grafana/system",
+  "instances": 1,
+  "cpus": 1,
+  "disk": 0,
+  "mem": 1024,
+  "acceptedResourceRoles": [
+    "*"
+  ],
+  "constraints": [
+    [
+      "hostname",
+      "LIKE",
+      "10.0.0.4"
+    ]
+  ],
+  "container": {
+    "docker": {
+      "forcePullImage": false,
+      "image": "grafana/grafana:5.0.4",
+      "network": "BRIDGE",
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 0,
+          "protocol": "tcp",
+          "name": "http"
+        }
+      ],
+      "privileged": false
+    },
+    "type": "DOCKER",
+    "volumes": [
+      {
+        "containerPath": "/etc/grafana",
+        "hostPath": "/home/grafana/system/conf",
+        "mode": "RW"
+      },
+      {
+        "containerPath": "/var/lib/grafana",
+        "hostPath": "/home/grafana/system/data",
+        "mode": "RW"
+      },
+      {
+        "containerPath": "/var/log/grafana",
+        "hostPath": "/home/grafana/system/logs",
+        "mode": "RW"
+      }
+    ]
+  },
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 30,
+      "ignoreHttp1xx": true,
+      "intervalSeconds": 1,
+      "maxConsecutiveFailures": 3,
+      "path": "/",
+      "portIndex": 0,
+      "protocol": "HTTP",
+      "timeoutSeconds": 10
+    }
+  ],
+  "labels": {
+    "HAPROXY_GROUP": "external",
+    "HAPROXY_0_ENABLED": "true",
+    "HAPROXY_0_VHOST": "system.g.toss.bz"
+  },
+  "upgradeStrategy": {
+    "maximumOverCapacity": 0,
+    "minimumHealthCapacity": 0
+  },
+  "taskKillGracePeriodSeconds": 30
+}

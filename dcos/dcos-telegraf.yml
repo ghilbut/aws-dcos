@@ -1,6 +1,6 @@
 ---
-- name: Make common environments for DC/OS cluster
-  hosts: influxdb
+- name: Install Telegraf Infra Producers and Kafka Consumers
+  hosts: telegraf
   gather_facts: no
   become: yes
 

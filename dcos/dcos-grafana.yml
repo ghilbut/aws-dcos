@@ -1,0 +1,38 @@
+---
+- name: Install Grafana
+  hosts: grafana
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: make directory
+    file:
+      path:  "/home/grafana/system/{{ item }}"
+      state: directory
+    with_items:
+    - conf
+    - data
+    - logs
+
+  - name: set config of grafana for system
+    vars:
+      domain_name: system.g.whalex.net
+    template:
+      src:  roles/grafana/templates/dcos-grafana-system.ini.j2
+      dest: /home/grafana/system/conf/grafana.ini
+    register: grafana
+
+  - name: set ldap of grafana for system
+    template:
+      src:  roles/grafana/templates/dcos-grafana-system-ldap.toml.j2
+      dest: /home/grafana/system/conf/ldap.toml
+    register: ldap
+
+  - name: start or restart DC/OS service
+    uri:
+      url:    "http://{{ groups['dcos-master'][0] }}/marathon/v2/apps/grafana/system"
+      method: PUT
+      body:   "{{ lookup('file', 'roles/grafana/files/dcos-grafana-system.json') }}"
+      body_format: json
+      status_code: 200,201
+    when: grafana.changed or ldap.changed

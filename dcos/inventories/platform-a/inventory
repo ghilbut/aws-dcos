@@ -10,6 +10,12 @@
 10.0.0.4
 10.0.0.5
 
+[telegraf:children]
+influxdb
+
+[grafana:children]
+influxdb
+
 
 [es6-data]
 10.0.0.150
