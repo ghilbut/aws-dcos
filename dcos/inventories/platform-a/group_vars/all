@@ -1,0 +1,8 @@
+---
+aws:
+  region: ap-northeast-2
+  zone:   a
+  organization: platform
+  owner:  ghilbut
+  ami:
+    centos: ami-995cf3f7
