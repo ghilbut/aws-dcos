@@ -51,6 +51,10 @@ $ curl -OL https://github.com/ansible/ansible/archive/v2.3.1.0-1.tar.gz
 $ tar -vxzf v2.3.1.0-1.tar.gz
 $ cd ansible-2.3.1.0-1/
 $ sudo python setup.py install
+
+$ vi ~/.ansible.cfg
+[defaults]
+host_key_checking = False
 ```
 
 ## Install boto 2.48.0
