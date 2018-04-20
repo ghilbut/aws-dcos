@@ -1,0 +1,99 @@
+---
+- stat: path=/mnt/dcos.disk.image
+  register: dcos_block_device
+- name: make file for dcos block device
+  shell: "fallocate -l {{ dcos_block_size }}GiB /mnt/dcos.disk.image"
+  when: not dcos_block_device.stat.exists
+- name: format file for dcos block device
+  shell: "mkfs.ext4 -F /mnt/dcos.disk.image"
+  when: not dcos_block_device.stat.exists
+- name: make mount point for dcos block device
+  file: path=/var/lib/dcos state=directory
+  when: not dcos_block_device.stat.exists
+- name: mount dcos block device
+  mount:
+    src: /mnt/dcos.disk.image
+    name: /var/lib/dcos
+    fstype: ext4
+    opts: defaults
+    dump: 1
+    passno: 2
+    state: mounted
+  when: not dcos_block_device.stat.exists
+
+- stat: path=/mnt/dcos-log.disk.image
+  register: dcos_log_block_device
+- name: make file for dcos log block device
+  shell: "fallocate -l 1GiB /mnt/dcos-log.disk.image"
+  when: not dcos_log_block_device.stat.exists
+- name: format file for dcos log block device
+  shell: "mkfs.ext4 -F /mnt/dcos-log.disk.image"
+  when: not dcos_log_block_device.stat.exists
+- name: make mount point for dcos log block device
+  file: path=/var/log/dcos state=directory
+  when: not dcos_log_block_device.stat.exists
+- name: mount dcos log block device
+  mount:
+    src: /mnt/dcos-log.disk.image
+    name: /var/log/dcos
+    fstype: ext4
+    opts: defaults
+    dump: 1
+    passno: 2
+    state: mounted
+  when: not dcos_log_block_device.stat.exists
+
+- name: add groups
+  group:
+    name:  nogroup
+    state: present
+
+- name: install utilities
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - xz
+  - unzip
+  - curl
+  - ipset
+
+- shell: grep "^SELINUX=enforcing" /etc/selinux/config
+  ignore_errors: yes
+  register: selinux_turnoffed
+- name: turn off SELinux
+  lineinfile:
+    path:   /etc/selinux/config
+    regexp: '^SELINUX=enforcing'
+    line:   'SELINUX=permissive'
+  when: selinux_turnoffed.stdout != ""
+  register: turnoff_selinux
+
+- name: reboot
+  shell: sleep 2 && /sbin/shutdown -r now "reboot for DC/OS installation preflight"
+  async: 1
+  poll:  0
+  ignore_errors: yes
+  when:  turnoff_selinux.changed
+- pause: seconds=10
+  when:  turnoff_selinux.changed
+- wait_for_connection:
+    dealy: 5
+  when:  turnoff_selinux.changed
+
+- stat: path=/home/centos/dcos_install.sh
+  register: dcos_install
+- name: download install script
+  get_url:
+    url: http://{{ bootstrap }}/dcos_install.sh
+    dest: /home/centos
+    group: centos
+    owner: centos
+    mode:  0400
+  when: not dcos_install.stat.exists
+
+- name: install dcos
+  shell: "bash dcos_install.sh {{ dcos_mode }}"
+  args:
+    chdir: /home/centos
+  ignore_errors: yes

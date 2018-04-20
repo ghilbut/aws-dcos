@@ -1,0 +1,26 @@
+---
+- name: Make common environments for DC/OS cluster
+  hosts: influxdb
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: make directory
+    file:
+      path:  /home/telegraf/conf
+      state: directory
+
+  - name: set telegraf infra producers and kafka consumers
+    template:
+      src:  roles/telegraf/templates/telegraf.conf.j2
+      dest: /home/telegraf/conf/telegraf.conf
+    register: telegraf
+
+  - name: start or restart DC/OS service
+    uri:
+      url:    "http://{{ groups['dcos-master'][0] }}/marathon/v2/apps/telegraf"
+      method: PUT
+      body:   "{{ lookup('file', 'roles/telegraf/files/dcos-telegraf.json') }}"
+      body_format: json
+      status_code: 200,201
+    when: telegraf.changed

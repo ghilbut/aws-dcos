@@ -1,0 +1,7 @@
+/var/log/dcos/dcos.log {    
+  size 100M
+  copytruncate
+  rotate 5
+  compress
+  compresscmd /bin/xz
+}

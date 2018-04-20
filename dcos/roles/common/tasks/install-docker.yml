@@ -1,0 +1,45 @@
+---
+- stat: path=/mnt/docker.disk.image
+  register: docker_block_device
+- name: make file for docker block device
+  shell: "fallocate -l {{ docker_block_size }}GiB /mnt/docker.disk.image"
+  when: not docker_block_device.stat.exists
+- name: format file for docker block device
+  shell: "mkfs.ext4 -F /mnt/docker.disk.image"
+  when: not docker_block_device.stat.exists
+- name: make mount point for docker block device
+  file: path=/var/lib/docker state=directory
+  when: not docker_block_device.stat.exists
+- name: mount docker block device
+  mount:
+    src: /mnt/docker.disk.image
+    name: /var/lib/docker
+    fstype: ext4
+    opts: defaults
+    dump: 1
+    passno: 2
+    state: mounted
+  when: not docker_block_device.stat.exists
+
+- name: install docker
+  yum:
+    name:  https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-18.03.0.ce-1.el7.centos.x86_64.rpm
+    state: present
+- name: set docker permission to user named centos
+  user:
+    name:   centos
+    group:  centos
+    groups: docker
+    append: yes
+- file:
+    path:  /etc/docker
+    state: directory
+- name: docker storage driver is overlay2
+  copy:
+    content: '{ "storage-driver": "overlay2" }'
+    dest: /etc/docker/daemon.json
+- name: start docker
+  systemd:
+    enabled: yes
+    name:    docker
+    state:   started

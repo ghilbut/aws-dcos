@@ -1,0 +1,34 @@
+---
+- name: install telegraf
+  yum:
+    name: https://dl.influxdata.com/telegraf/releases/telegraf-1.6.0-1.x86_64.rpm
+    state: present
+
+- name: set docker permission to user named telegraf
+  user:
+    name:   telegraf
+    group:  telegraf
+    groups: docker
+    append: yes
+
+- name: check backup state
+  stat: path=/etc/telegraf/telegraf.conf.bak
+  register: backup
+- name: backup config
+  copy:
+    remote_src: yes
+    src:  /etc/telegraf/telegraf.conf
+    dest: /etc/telegraf/telegraf.conf.bak
+  when: not backup.stat.exists
+- name: copy config
+  template:
+    src:  roles/common/templates/telegraf.conf.j2
+    dest: /etc/telegraf/telegraf.conf
+  register: config
+
+- name: run on systemd
+  systemd:
+    enabled: yes
+    name:    telegraf
+    state:   restarted
+  when: config.changed

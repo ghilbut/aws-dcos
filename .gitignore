@@ -102,12 +102,9 @@ ENV/
 
 
 
-# vim
-.*.swp
-
-# macosx
+# ghilbut
 .DS_Store
-
-# ansible
+*.ini
 *.pem
 *.retry
+*.swp

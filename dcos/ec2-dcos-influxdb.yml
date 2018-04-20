@@ -1,0 +1,70 @@
+---
+- name: Create EC2 Instance for InfluxDB
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    inifile:    "{{ inventory_dir }}/files/aws.ini"
+    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
+    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
+    ec2_name:   ec2-dcos-influxdb-a
+
+  tasks:
+  - name: launch ec2 instance for influxdb
+    ec2:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      group_id:       sg-0bd58218cc97f58f1
+      image:          ami-995cf3f7
+      instance_tags:
+        Name:           ec2-dcos-influxdb-a
+        organization:   platform
+        owner:          ghilbut
+      instance_type:  i3.2xlarge
+      key_name:       platform
+      private_ip:     "{{ item }}"
+      region:         ap-northeast-2
+      volumes:
+      - delete_on_termination: yes
+        device_name: /dev/sda1
+        name:        "{{ ec2_name }}"
+        volume_size: 24
+        volume_type: gp2
+      vpc_subnet_id: subnet-0640ab1e2c11dfe76
+      wait: yes
+    with_items: "{{ groups.influxdb }}"
+
+  - name: remove host from ~/.ssh/known_hosts
+    known_hosts: name={{ item }} state=absent
+    with_items: "{{ groups.influxdb }}"
+
+
+
+- name: Wait running EC2 instances
+  hosts: influxdb
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - pause: seconds=60
+  - wait_for_connection:
+      dealy: 5
+
+  - stat: path=/home/influxdb
+    register: influxdb_device
+  - name: format file for influxdb block device
+    shell: "mkfs.ext4 -F /dev/nvme0n1"
+    when: not influxdb_device.stat.exists
+  - name: make mount point for influxdb block device
+    file: path=/home/influxdb state=directory
+    when: not influxdb_device.stat.exists
+  - name: mount influxdb block device
+    mount:
+      src:    /dev/nvme0n1
+      name:   /home/influxdb
+      fstype: ext4
+      opts:   defaults
+      dump:   1
+      passno: 2
+      state:  mounted
+    when: not influxdb_device.stat.exists

@@ -1,0 +1,4 @@
+MESOS_RESOURCES='[
+  {"name": "ports", "type": "SET", "set": {"item": ["8086", "8088"], "role": "influxdb"}},
+  {"name": "ports", "type": "RANGES", "ranges": {"range": [{"begin": 10000, "end": 65535}]}}
+]'

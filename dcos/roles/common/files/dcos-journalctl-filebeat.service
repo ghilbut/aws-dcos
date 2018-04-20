@@ -1,0 +1,15 @@
+[Unit]
+Description=DCOS journalctl parser to filebeat
+Wants=filebeat.service
+After=filebeat.service
+ 
+[Service]
+Restart=always
+RestartSec=5
+ExecStart=/bin/sh -c '/usr/bin/journalctl \
+                      --since="5 minutes ago" \
+                      --no-tail --follow --unit="dcos*.service" \
+                      >> /var/log/dcos/dcos.log 2>&1'
+ 
+[Install]
+WantedBy=multi-user.target

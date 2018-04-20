@@ -1,0 +1,38 @@
+{
+  "id": "/telegraf",
+  "instances": 2,
+  "cpus": 2,
+  "mem": 1024,
+  "acceptedResourceRoles": [
+    "*"
+  ],
+  "constraints": [
+    [
+      "hostname",
+      "LIKE",
+      "10.0.0.(4|5)"
+    ]
+  ],
+  "container": {
+    "docker": {
+      "forcePullImage": false,
+      "image": "telegraf:1.6.0",
+      "network": "BRIDGE",
+      "privileged": false
+    },
+    "type": "DOCKER",
+    "volumes": [
+      {
+        "containerPath": "/etc/telegraf",
+        "hostPath":      "/home/telegraf/conf",
+        "mode":          "RO"
+      }
+    ]
+  },
+  "maxLaunchDelaySeconds": 30,
+  "upgradeStrategy": {
+    "maximumOverCapacity": 0,
+    "minimumHealthCapacity": 0
+  },
+  "taskKillGracePeriodSeconds": 30
+}

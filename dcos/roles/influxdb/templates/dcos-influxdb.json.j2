@@ -1,0 +1,98 @@
+{
+  "id": "{{ id }}",
+  "instances": 1,
+  "cpus": 4,
+  "mem": 32768,
+  "acceptedResourceRoles": [
+    "influxdb"
+  ],
+  "args": [
+    "-config",
+    "/etc/influxdb/influxdb.conf"
+  ],
+  "constraints": [
+    [
+      "hostname",
+      "LIKE",
+      "{{ host }}"
+    ]
+  ],
+  "container": {
+    "docker": {
+      "forcePullImage": false,
+      "image": "influxdb:1.5.2",
+      "network": "HOST",
+      "parameters": [
+        {
+          "key": "memory-swap",
+          "value": "0b"
+        },
+        {
+          "key": "oom-kill-disable",
+          "value": "true"
+        }
+      ],
+      "portMappings": [
+        {
+          "name": "http",
+          "containerPort": 8086,
+          "hostPort": 8086,
+          "protocol": "tcp"
+        },
+        {
+          "name": "rpc",
+          "containerPort": 8088,
+          "hostPort": 8088,
+          "protocol": "tcp"
+        }
+      ],
+      "privileged": false
+    },
+    "type": "DOCKER",
+    "volumes": [
+      {
+        "containerPath": "/etc/influxdb",
+        "hostPath": "/home/influxdb/conf",
+        "mode": "RO"
+      },
+      {
+        "containerPath": "/var/log/influxdb",
+        "hostPath": "/home/influxdb/log",
+        "mode": "RW"
+      },
+      {
+        "containerPath": "/var/lib/influxdb/data",
+        "hostPath": "/home/influxdb/data",
+        "mode": "RW"
+      },
+      {
+        "containerPath": "/var/lib/influxdb/meta",
+        "hostPath": "/home/influxdb/meta",
+        "mode": "RW"
+      },
+      {
+        "containerPath": "/var/lib/influxdb/wal",
+        "hostPath": "/home/influxdb/wal",
+        "mode": "RW"
+      }
+    ]
+  },
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 300,
+      "ignoreHttp1xx": true,
+      "intervalSeconds": 1,
+      "maxConsecutiveFailures": 3,
+      "path": "/ping",
+      "port": 8086,
+      "protocol": "HTTP",
+      "timeoutSeconds": 10
+    }
+  ],
+  "maxLaunchDelaySeconds": 60,
+  "upgradeStrategy": {
+    "maximumOverCapacity": 0,
+    "minimumHealthCapacity": 0
+  },
+  "taskKillGracePeriodSeconds": 30
+}

@@ -1,0 +1,47 @@
+---
+- name: install filebeat
+  yum:
+    name:  https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-6.2.4-x86_64.rpm
+    state: present
+
+- name: check backup state
+  stat: path=/etc/filebeat/filebeat.yml.bak
+  register: backup
+- name: backup config
+  copy:
+    remote_src: yes
+    src:  /etc/filebeat/filebeat.yml
+    dest: /etc/filebeat/filebeat.yml.bak
+  when: not backup.stat.exists
+- name: copy filebeat config
+  template:
+    src:  roles/common/templates/filebeat.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+
+- name: copy dcos-journal-filebeat service file
+  copy:
+    src:  roles/common/files/dcos-journalctl-filebeat.service
+    dest: /usr/lib/systemd/system/dcos-journalctl-filebeat.service
+
+- name: copy logrotate file
+  copy:
+    src:  roles/common/files/dcos-journalctl-filebeat.logrotate
+    dest: /etc/logrotate.d/dcos-filebeat
+
+- name: create file log directory
+  file:
+    path: /var/log/dcos
+    state: directory
+
+- name: start dcos-journalctl-filebeat service
+  systemd:
+    daemon-reload: yes
+    enabled: yes
+    name: dcos-journalctl-filebeat.service
+    state: restarted
+
+- name: start filebeat service
+  systemd:
+    enabled: yes
+    name: filebeat.service
+    state: restarted
