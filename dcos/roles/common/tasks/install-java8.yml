@@ -14,3 +14,10 @@
     dest:  "/usr/share/java"
     state: link
   when: not jdk.stat.exists
+
+- name: make symbolic link /usr/bin/java
+  file:
+    src:   "/usr/share/java/bin/java"
+    dest:  "/usr/bin/java"
+    state: link
+  when: not jdk.stat.exists
