@@ -1,7 +1,7 @@
 {
-  "id": "/telegraf",
-  "instances": 2,
-  "cpus": 2,
+  "id": "/telegraf-consumer-{{ inventory_hostname }}",
+  "instances": 1,
+  "cpus": 1,
   "mem": 1024,
   "acceptedResourceRoles": [
     "*"
@@ -10,7 +10,7 @@
     [
       "hostname",
       "LIKE",
-      "10.0.0.(4|5)"
+      "{{ inventory_hostname }}"
     ]
   ],
   "container": {
@@ -24,7 +24,7 @@
     "volumes": [
       {
         "containerPath": "/etc/telegraf",
-        "hostPath":      "/home/telegraf/conf",
+        "hostPath":      "/home/telegraf/consumer/conf",
         "mode":          "RO"
       }
     ]

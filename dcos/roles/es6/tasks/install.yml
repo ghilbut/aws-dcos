@@ -1,0 +1,46 @@
+---
+- name: install elasticsearch 6.x from rpm
+  yum:
+    name: https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.4.rpm
+    state: present
+
+- stat: path=/etc/elasticsearch/elasticsearch.yml.bak
+  register: config
+- copy:
+    remote_src: yes
+    src:  /etc/elasticsearch/elasticsearch.yml
+    dest: /etc/elasticsearch/elasticsearch.yml.bak
+  when: not config.stat.exists
+- name: set elasticsearch.yml
+  template:
+    src:   roles/es6/templates/elasticsearch.yml.j2
+    dest:  /etc/elasticsearch/elasticsearch.yml
+    owner: elasticsearch
+    group: elasticsearch
+
+- stat: path=/etc/elasticsearch/jvm.options.bak
+  register: jvm_options
+- copy:
+    remote_src: yes
+    src:  /etc/elasticsearch/jvm.options
+    dest: /etc/elasticsearch/jvm.options.bak
+  when: not jvm_options.stat.exists
+- name: set jvm.options
+  template:
+    src:   roles/es6/templates/jvm.options.j2
+    dest:  /etc/elasticsearch/jvm.options
+    owner: elasticsearch
+    group: elasticsearch
+
+- name: set JAVA_HOME
+  lineinfile:
+    path: /etc/sysconfig/elasticsearch
+    line: JAVA_HOME=/usr/share/java
+    insertafter: "^#JAVA_HOME="
+
+- name: run on systemd
+  systemd:
+    daemon-reload: yes
+    enabled: yes
+    name:    elasticsearch
+    state:   started

@@ -1,0 +1,43 @@
+---
+- name: Install Telegraf Kafka Consumers
+  hosts: telegraf
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: make directory
+    file:
+      path:  /home/telegraf/conf
+      state: directory
+
+  - name: make directory
+    file:
+      path:  /home/telegraf/consumer/conf
+      state: directory
+  - name: set telegraf kafka consumers
+    template:
+      src:  roles/telegraf-consumer/templates/telegraf.conf.j2
+      dest: /home/telegraf/consumer/conf/telegraf.conf
+    register: telegraf
+
+  - name: make DC/OS deploy json
+    local_action:
+      module: template
+      src:    roles/telegraf-consumer/templates/dcos-telegraf.json.j2
+      dest:   "/tmp/telegraf-consumer-{{ inventory_hostname }}.json"
+    become: no
+
+  - name: start or restart DC/OS service
+    uri:
+      url:    "http://{{ groups['dcos-master'][0] }}/marathon/v2/apps/telegraf-consumer-{{ inventory_hostname }}"
+      method: PUT
+      body:   "{{ lookup('file', '/tmp/telegraf-consumer-' + inventory_hostname + '.json') }}"
+      body_format: json
+      status_code: 200,201
+
+  - name: remove temporary files
+    local_action:
+      module: file
+      path:   "/tmp/telegraf-consumer-{{ inventory_hostname }}.json"
+      state:  absent
+    become: no

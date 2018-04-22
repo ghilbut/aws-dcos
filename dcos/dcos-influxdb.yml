@@ -9,13 +9,16 @@
     vars:
       docker_block_size: 16
 
+  - include: roles/common/tasks/install-telegraf.yml
+    vars:
+      type: dcos-slave
+
   - include: roles/common/tasks/install-dcos.yml
     vars:
       bootstrap: "{{ groups['dcos-bootstrap'][0] }}"
       dcos_block_size: 4
       dcos_mode: slave
 
-  - include: roles/common/tasks/install-telegraf.yml
   - include: roles/common/tasks/install-dcos-filebeat.yml
 
   #- name: replace resource rules

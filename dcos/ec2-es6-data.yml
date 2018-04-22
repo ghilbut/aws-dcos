@@ -1,5 +1,5 @@
 ---
-- name: Create EC2 Instance for InfluxDB
+- name: Create EC2 Instance for Elasticsearch 6.x Data Nodes
   hosts: localhost
   connection: local
   gather_facts: False
@@ -13,7 +13,7 @@
     instances:  "{{ groups['es6-data'] }}"
 
   tasks:
-  - name: launch ec2 instance for elasticsearch 6.x
+  - name: launch ec2 instance for elasticsearch 6.x data nodes
     ec2:
       aws_access_key: "{{ access_key }}"
       aws_secret_key: "{{ secret_key }}"
@@ -52,18 +52,20 @@
   - wait_for_connection:
       dealy: 5
 
-  - stat: path=/home/es6
+  - stat: path=/var/lib/elasticsearch
     register: es6_device
   - name: format file for es6 block device
     shell: "mkfs.ext4 -F /dev/nvme0n1"
     when: not es6_device.stat.exists
   - name: make mount point for es6 block device
-    file: path=/home/es6 state=directory
+    file:
+      path:  /var/lib/elasticsearch
+      state: directory
     when: not es6_device.stat.exists
   - name: mount es6 block device
     mount:
       src:    /dev/nvme0n1
-      name:   /home/es6
+      name:   /var/lib/elasticsearch
       fstype: ext4
       opts:   defaults
       dump:   1

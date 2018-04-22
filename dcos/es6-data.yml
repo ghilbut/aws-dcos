@@ -1,0 +1,26 @@
+---
+- name: Install Elasticsearch 6.x Data Nodes
+  hosts: es6-data
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - include: roles/common/tasks/install-docker.yml
+    vars:
+      docker_block_size: 4
+
+  - include: roles/common/tasks/install-telegraf.yml
+    vars:
+      type: es6-data
+
+  - include: roles/common/tasks/install-java8.yml
+
+  - include: roles/es6/tasks/install.yml
+    vars:
+      es6_cluster_name:  elasticsearch
+      es6_jvm_heap_size: 30
+      es6_node_master:   "true"
+      es6_node_data:     "true"
+      es6_node_ingest:   "true"
+      #es6_http_enabled:  "false"
+      es6_http_enabled:  "true"
