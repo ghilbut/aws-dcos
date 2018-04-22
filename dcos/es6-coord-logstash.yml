@@ -1,0 +1,114 @@
+---
+- name: Install Logstash
+  hosts: logstash
+  gather_facts: no
+  environment:
+    JAVA_HOME: /usr/share/java
+  become: yes
+
+  tasks:
+  - name: install logstash
+    yum:
+      name: https://artifacts.elastic.co/downloads/logstash/logstash-6.2.4.rpm
+
+  - stat: path=/mnt/logstash_lib.disk.image
+    register: logstash_lib_block_device
+  - name: make file for logstash lib block device
+    shell: "fallocate -l 4GiB /mnt/logstash_lib.disk.image"
+    when: not logstash_lib_block_device.stat.exists
+  - name: format file for logstash lib block device
+    shell: "mkfs.ext4 -F /mnt/logstash_lib.disk.image"
+    when: not logstash_lib_block_device.stat.exists
+  - name: make mount point for logstash lib block device
+    file: path=/var/lib/logstash state=directory
+    when: not logstash_lib_block_device.stat.exists
+  - name: mount logstash lib block device
+    mount:
+      src: /mnt/logstash_lib.disk.image
+      name: /var/lib/logstash
+      fstype: ext4
+      opts: defaults
+      dump: 1
+      passno: 2
+      state: mounted
+    when: not logstash_lib_block_device.stat.exists
+
+  - stat: path=/mnt/logstash_log.disk.image
+    register: logstash_log_block_device
+  - name: make file for logstash log block device
+    shell: "fallocate -l 1GiB /mnt/logstash_log.disk.image"
+    when: not logstash_log_block_device.stat.exists
+  - name: format file for logstash log block device
+    shell: "mkfs.ext4 -F /mnt/logstash_log.disk.image"
+    when: not logstash_log_block_device.stat.exists
+  - name: make mount point for logstash log block device
+    file: path=/var/log/logstash state=directory
+    when: not logstash_log_block_device.stat.exists
+  - name: mount logstash log block device
+    mount:
+      src: /mnt/logstash_log.disk.image
+      name: /var/log/logstash
+      fstype: ext4
+      opts: defaults
+      dump: 1
+      passno: 2
+      state: mounted
+    when: not logstash_log_block_device.stat.exists
+
+  - file:
+      path: "/var/{{ item }}/logstash"
+      owner: logstash
+      group: logstash
+    with_items:
+    - lib
+    - log
+
+  - stat: path=/etc/logstash/logstash.yml.bak
+    register: settings_backup
+  - copy:
+      remote_src: yes
+      src:  /etc/logstash/logstash.yml
+      dest: /etc/logstash/logstash.yml.bak
+    when: not settings_backup.stat.exists
+  - name: set config file
+    template:
+      src:  roles/logstash/templates/logstash.yml.j2
+      dest: /etc/logstash/logstash.yml
+
+  - stat: path=/etc/logstash/jvm.options.bak
+    register: jvm_backup
+  - copy:
+      remote_src: yes
+      src:  /etc/logstash/jvm.options
+      dest: /etc/logstash/jvm.options.bak
+    when: not jvm_backup.stat.exists
+  - name: set jvm options file
+    template:
+      src:  roles/logstash/templates/jvm.options.j2
+      dest: /etc/logstash/jvm.options
+
+  - name: set config file
+    vars:
+      kafka_consumer_threads: 1
+    template:
+      src:  roles/logstash/templates/logstash.conf.j2
+      dest: /etc/logstash/conf.d/logstash.conf
+
+  - name: install logstash-input-kafka
+    shell: /usr/share/logstash/bin/logstash-plugin install logstash-input-kafka
+
+  - name: install logstash-output-elasticsearch
+    shell: /usr/share/logstash/bin/logstash-plugin install logstash-output-elasticsearch
+
+  - name: install x-pack for logstash
+    shell: /usr/share/logstash/bin/logstash-plugin install x-pack
+
+  - name: make systemd config
+    shell: /usr/share/logstash/bin/system-install /etc/logstash/startup.options systemd
+
+  - name: run on systemd
+    systemd:
+      daemon-reload: yes
+      enabled: yes
+      name:    logstash
+      state:   started

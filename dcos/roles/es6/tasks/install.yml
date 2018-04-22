@@ -38,6 +38,9 @@
     line: JAVA_HOME=/usr/share/java
     insertafter: "^#JAVA_HOME="
 
+- name: install x-pack
+  shell: /usr/share/elasticsearch/bin/elasticsearch-plugin install x-pack
+
 - name: run on systemd
   systemd:
     daemon-reload: yes

@@ -1,0 +1,86 @@
+---
+- name: Install Kibana
+  hosts: kibana
+  gather_facts: no
+  environment:
+    JAVA_HOME: /usr/share/java
+  become: yes
+
+  tasks:
+  - name: install kibana
+    yum:
+      name: https://artifacts.elastic.co/downloads/kibana/kibana-6.2.4-x86_64.rpm
+
+  - stat: path=/mnt/kibana_lib.disk.image
+    register: kibana_lib_block_device
+  - name: make file for kibana lib block device
+    shell: "fallocate -l 4GiB /mnt/kibana_lib.disk.image"
+    when: not kibana_lib_block_device.stat.exists
+  - name: format file for kibana lib block device
+    shell: "mkfs.ext4 -F /mnt/kibana_lib.disk.image"
+    when: not kibana_lib_block_device.stat.exists
+  - name: make mount point for kibana lib block device
+    file: path=/var/lib/kibana state=directory
+    when: not kibana_lib_block_device.stat.exists
+  - name: mount kibana lib block device
+    mount:
+      src: /mnt/kibana_lib.disk.image
+      name: /var/lib/kibana
+      fstype: ext4
+      opts: defaults
+      dump: 1
+      passno: 2
+      state: mounted
+    when: not kibana_lib_block_device.stat.exists
+
+  - stat: path=/mnt/kibana_log.disk.image
+    register: kibana_log_block_device
+  - name: make file for kibana log block device
+    shell: "fallocate -l 1GiB /mnt/kibana_log.disk.image"
+    when: not kibana_log_block_device.stat.exists
+  - name: format file for kibana log block device
+    shell: "mkfs.ext4 -F /mnt/kibana_log.disk.image"
+    when: not kibana_log_block_device.stat.exists
+  - name: make mount point for kibana log block device
+    file: path=/var/log/kibana state=directory
+    when: not kibana_log_block_device.stat.exists
+  - name: mount kibana log block device
+    mount:
+      src: /mnt/kibana_log.disk.image
+      name: /var/log/kibana
+      fstype: ext4
+      opts: defaults
+      dump: 1
+      passno: 2
+      state: mounted
+    when: not kibana_log_block_device.stat.exists
+
+  - file:
+      path: "/var/{{ item }}/kibana"
+      owner: kibana
+      group: kibana
+    with_items:
+    - lib
+    - log
+
+  - stat: path=/etc/kibana/kibana.yml.bak
+    register: backup
+  - copy:
+      remote_src: yes
+      src:  /etc/kibana/kibana.yml
+      dest: /etc/kibana/kibana.yml.bak
+    when: not backup.stat.exists
+  - name: set config file
+    template:
+      src:  roles/kibana/templates/kibana.yml.j2
+      dest: /etc/kibana/kibana.yml
+
+  - name: install x-pack for kibana
+    shell: /usr/share/kibana/bin/kibana-plugin install x-pack
+
+  - name: run on systemd
+    systemd:
+      daemon-reload: yes
+      enabled: yes
+      name:    kibana
+      state:   started
