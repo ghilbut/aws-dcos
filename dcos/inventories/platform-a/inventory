@@ -10,6 +10,9 @@
 10.0.0.4
 10.0.0.5
 
+[influxdb:vars]
+beat_tags='[ "influxdb", "dcos", "slave" ]'
+
 [telegraf:children]
 influxdb
 
@@ -19,10 +22,11 @@ influxdb
 
 [es6-master]
 10.0.0.150
-#10.0.0.151
-#10.0.0.152
-#10.0.0.153
-#10.0.0.154
+10.0.0.151
+10.0.0.152
+10.0.0.153
+10.0.0.154
+
 
 [es6-data:children]
 es6-master
@@ -31,10 +35,12 @@ es6-master
 
 [es6-coord]
 10.0.0.10
-#10.0.0.11
-
+10.0.0.11
 
 [kibana:children]
+es6-coord
+
+[logstash:children]
 es6-coord
 
 
@@ -48,5 +54,21 @@ es6-coord
 10.0.0.253
 10.0.0.254
 
+[dcos-master:vars]
+beat_tags='[ "dcos", "master" ]'
+
 [dcos-slave]
 
+[dcos-slave:vars]
+beat_tags='[ "dcos", "slave" ]'
+
+[dcos-slave-public]
+
+[dcos-slave-public:vars]
+beat_tags='[ "dcos", "slave-public" ]'
+
+[dcos:children]
+dcos-master
+dcos-slave
+dcos-slave-public
+influxdb
