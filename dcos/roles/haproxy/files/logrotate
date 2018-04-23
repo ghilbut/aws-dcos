@@ -1,0 +1,12 @@
+/var/log/haproxy/access.log
+/var/log/haproxy/status.log {
+  daily
+  missingok
+  nocompress
+  notifempty
+  rotate 3
+  sharedscripts
+  postrotate
+    /usr/bin/systemctl restart rsyslog > /dev/null 2>&1 || true
+  endscript
+}

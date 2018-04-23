@@ -1,0 +1,80 @@
+---
+- name: Install HAProxy
+  hosts: haproxy
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - include: roles/common/tasks/install-docker.yml
+    vars:
+      docker_block_size: 2
+
+  - include: roles/common/tasks/install-telegraf.yml
+    vars:
+      telegraf_role: dcos-slave
+
+
+  - stat: path=/mnt/haproxy_log.disk.image
+    register: haproxy_log_block_device
+  - name: make file for haproxy log block device
+    shell: "fallocate -l 1GiB /mnt/haproxy_log.disk.image"
+    when: not haproxy_log_block_device.stat.exists
+  - name: format file for haproxy log block device
+    shell: "mkfs.ext4 -F /mnt/haproxy_log.disk.image"
+    when: not haproxy_log_block_device.stat.exists
+  - name: make mount point for haproxy log block device
+    file: path=/var/log/haproxy state=directory
+    when: not haproxy_log_block_device.stat.exists
+  - name: mount haproxy log block device
+    mount:
+      src: /mnt/haproxy_log.disk.image
+      name: /var/log/haproxy
+      fstype: ext4
+      opts: defaults
+      dump: 1
+      passno: 2
+      state: mounted
+    when: not haproxy_log_block_device.stat.exists
+
+
+  - file:
+      path:  /etc/haproxy
+      state: directory
+  - name: set config file
+    template:
+      src:  roles/haproxy/templates/haproxy.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
+      mode: 0744
+
+  - file:
+      path:  /usr/share/haproxy
+      state: directory
+  - name: copy shell commands
+    copy:
+      src:  "roles/haproxy/files/docker-{{ item }}.sh"
+      dest: "/usr/share/haproxy/docker-{{ item }}.sh"
+      mode: 0755
+    with_items:
+    - check
+    - reload
+    - run
+    - stop
+
+  - name:  check haproxy config validation
+    shell: /usr/share/haproxy/docker-check.sh
+  - name:  run haproxy docker
+    shell: /usr/share/haproxy/docker-run.sh
+
+  - name: copy rsyslog and logrotate config
+    copy:
+      src:  "roles/haproxy/files/{{ item }}"
+      dest: "/etc/{{ item }}.d/haproxy"
+      mode: 0744
+    with_items:
+    - rsyslog
+    - logrotate
+
+  - name: run on systemd
+    systemd:
+      name:  rsyslog
+      state: restarted

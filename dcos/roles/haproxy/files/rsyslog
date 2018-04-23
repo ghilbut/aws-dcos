@@ -1,0 +1,2 @@
+local0.=info     /var/log/haproxy/access.log
+local1.notice    /var/log/haproxy/status.log

@@ -1,3 +1,8 @@
+[haproxy]
+10.0.254.4
+10.0.254.5
+
+
 [kafka]
 10.0.0.100
 10.0.0.101
@@ -55,19 +60,20 @@ es6-coord
 10.0.0.254
 
 [dcos-master:vars]
-telegraf_type = "dcos-master"
 beat_tags = '[ "dcos", "master" ]'
+
+[dcos-slave-mlb-external]
+10.0.10.4
+#10.0.10.5
 
 [dcos-slave]
 
 [dcos-slave:vars]
-telegraf_type = "dcos-slave"
 beat_tags = '[ "dcos", "slave" ]'
 
 [dcos-slave-public]
 
 [dcos-slave-public:vars]
-telegraf_type = "dcos-slave-public"
 beat_tags = '[ "dcos", "slave-public" ]'
 
 [dcos:children]
