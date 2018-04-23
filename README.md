@@ -20,12 +20,12 @@ $ curl -OL https://github.com/git-lfs/git-lfs/releases/download/v2.2.1/git-lfs-l
 $ tar -vxzf git-lfs-linux-amd64-2.2.1.tar.gz
 $ cd git-lfs-2.2.1
 $ sudo ./install.sh
-$ git lfs install
 ```
 
 ### Manage large file types
 ```bash
 $ cd /project/dir
+$ git lfs install
 $ git lfs track "*.tar.bz"
 $ git lfs track "*.tgz"
 $ git lfs track "*.zip"
