@@ -25,10 +25,11 @@
     src:  roles/common/templates/telegraf.conf.j2
     dest: /etc/telegraf/telegraf.conf
   register: config
+- name: check validation
+  shell: /usr/bin/telegraf -config /etc/telegraf/telegraf.conf -test
 
 - name: run on systemd
   systemd:
     enabled: yes
     name:    telegraf
-    state:   restarted
-  when: config.changed
+    state:   started

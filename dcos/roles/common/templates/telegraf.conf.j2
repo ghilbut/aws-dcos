@@ -19,7 +19,7 @@
   dc   = "{{ aws.region }}"
   rack = "{{ aws.zone }}"
   # user = "$USER"
-  type = "{{ type }}"
+  type = "{{ type | default(None) }}"
 
 
 # Configuration for telegraf agent
