@@ -1,0 +1,70 @@
+{
+  "id": "/mlb-external-{{ inventory_hostname }}",
+  "env": {
+    "PORTS": "80,443,9090",
+  },
+  "args": [
+    "sse",
+    "-m",
+    "http://marathon.mesos:8080",
+    "--group",
+    "{{ mlb_group }}",
+    "--haproxy-map",
+    "--health-check",
+    "--strict-mode",
+    "--syslog-socket",
+    "/dev/log"
+  ],
+  "instances": 1,
+  "cpus": 2,
+  "mem": 1024,
+  "constraints": [
+    [
+      "hostname",
+      "LIKE",
+      "{{ inventory_hostname }}"
+    ]
+  ],
+  "container": {
+    "type": "DOCKER",
+    "volumes": [
+      {
+        "containerPath": "/dev/log",
+        "hostPath": "/dev/log",
+        "mode": "RW"
+      },
+      {
+        "containerPath": "/marathon-lb/marathon_lb.py",
+        "hostPath": "/usr/share/marathon-lb/src/marathon_lb.py",
+        "mode": "RO"
+      },
+      {
+        "containerPath": "/marathon-lb/templates",
+        "hostPath": "/usr/share/marathon-lb/templates",
+        "mode": "RO"
+      }
+    ],
+    "docker": {
+      "image": "mesosphere/marathon-lb:v1.12.0",
+      "network": "HOST",
+      "privileged": true,
+      "forcePullImage": false
+    }
+  },
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 30,
+      "intervalSeconds": 1,
+      "timeoutSeconds": 10,
+      "maxConsecutiveFailures": 3,
+      "port": 9090,
+      "path": "/_haproxy_health_check",
+      "protocol": "HTTP",
+      "ignoreHttp1xx": true
+    }
+  ],
+  "upgradeStrategy": {
+    "minimumHealthCapacity": 0,
+    "maximumOverCapacity": 0
+  }
+}

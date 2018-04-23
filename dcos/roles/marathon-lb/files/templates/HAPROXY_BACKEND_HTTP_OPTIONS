@@ -1,0 +1,6 @@
+  # HAPROXY_BACKEND_HTTP_OPTIONS
+  option http-keep-alive
+  option prefer-last-server
+  option forwardfor
+  http-request set-header X-Forwarded-Port %[dst_port]
+  http-request add-header X-Forwarded-Proto https if { ssl_fc }

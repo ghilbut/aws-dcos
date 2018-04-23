@@ -1,0 +1,5 @@
+
+frontend marathon_http_in
+  bind *:80
+  mode http
+  monitor-uri /_marathon_lb_healthcheck

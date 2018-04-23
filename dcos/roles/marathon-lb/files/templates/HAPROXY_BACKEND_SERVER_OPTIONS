@@ -1,0 +1,2 @@
+  # HAPROXY_BACKEND_SERVER_OPTIONS & HAPROXY_BACKEND_SERVER_HTTP_HEALTHCHECK_OPTIONS
+  server {serverName} {host_ipv4}:{port}{cookieOptions}{healthCheckOptions}{otherOptions} id {id}

@@ -1,0 +1,4 @@
+  # HAPROXY_BACKEND_HTTP_HEALTHCHECK_OPTIONS
+  http-check disable-on-404
+  option  httpchk GET {healthCheckPath}
+  timeout check {healthCheckTimeoutSeconds}s

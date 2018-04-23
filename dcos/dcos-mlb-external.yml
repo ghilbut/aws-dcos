@@ -1,0 +1,122 @@
+---
+- name: Install Marathon-LB External
+  hosts: dcos-slave-mlb-external
+  gather_facts: no
+  roles:
+  - common
+  - haproxy
+  #- marathon-lb
+  vars:
+    instances: "{{ groups['dcos-slave-mlb-external'] }}"
+  become: yes
+
+  tasks:
+  - include: roles/common/tasks/install-docker.yml
+    vars:
+      docker_block_size: 2
+
+  - include: roles/common/tasks/install-telegraf.yml
+    vars:
+      telegraf_role: dcos-slave
+
+  - include: roles/common/tasks/install-dcos.yml
+    vars:
+      bootstrap: "{{ groups['dcos-bootstrap'][0] }}"
+      dcos_block_size: 4
+      dcos_mode: slave
+
+  - include: roles/common/tasks/install-dcos-filebeat.yml
+    vars:
+      beat_tags: '[ "dcos", "slave", "mlb-external" ]'
+
+
+  - stat: path=/mnt/haproxy_log.disk.image
+    register: haproxy_log_block_device
+  - name: make file for log block device
+    shell: "fallocate -l 1GiB /mnt/haproxy_log.disk.image"
+    when: not haproxy_log_block_device.stat.exists
+  - name: format file for haproxy log block device
+    shell: "mkfs.ext4 -F /mnt/haproxy_log.disk.image"
+    when: not haproxy_log_block_device.stat.exists
+  - name: make mount point for haproxy log block device
+    file: path=/var/log/haproxy state=directory
+    when: not haproxy_log_block_device.stat.exists
+  - name: mount haproxy log block device
+    mount:
+      src: /mnt/haproxy_log.disk.image
+      name: /var/log/haproxy
+      fstype: ext4
+      opts: defaults
+      dump: 1
+      passno: 2
+      state: mounted
+    when: not haproxy_log_block_device.stat.exists
+
+  - name: create marathon-lb directory
+    file:
+      path:  "/usr/share/marathon-lb/{{ item }}"
+      state: directory
+    with_items:
+    - src
+    - templates
+
+  - name: copy source file to over-write
+    copy:
+      src:  roles/marathon-lb/files/src/marathon_lb.py
+      dest: /usr/share/marathon-lb/src/marathon_lb.py
+      mode: 0755
+
+  - name: copy marathon-lb templates
+    copy:
+      src:  "roles/marathon-lb/files/templates/{{ item }}"
+      dest: "/usr/share/marathon-lb/templates/{{ item }}"
+    with_items:
+    - HAPROXY_BACKEND_HEAD
+    - HAPROXY_BACKEND_HTTP_HEALTHCHECK_OPTIONS
+    - HAPROXY_BACKEND_HTTP_OPTIONS
+    - HAPROXY_BACKEND_SERVER_OPTIONS
+    - HAPROXY_HEAD
+    - HAPROXY_HTTP_FRONTEND_HEAD
+
+
+  - name: compile json for marathon
+    vars:
+      mlb_group: external
+    local_action:
+      module: template
+      src:  roles/marathon-lb/templates/dcos-marathon-lb.json.j2
+      dest: "/tmp/mlb-{{ item }}.json"
+    with_items: "{{ instances }}"
+    become: no
+
+  - name: start or restart DC/OS service
+    uri:
+      url:    "http://{{ groups['dcos-master'][0] }}/marathon/v2/apps/mlb-external-{{ item }}"
+      method: PUT
+      body:   "{{ lookup('file', '/tmp/mlb-' + item + '.json') }}"
+      body_format: json
+      status_code: 200,201
+    with_items: "{{ instances }}"
+
+  - name: remove json for marathon
+    local_action:
+      module: file
+      path:  "/tmp/mlb-{{ item }}.json"
+      state: absent
+    with_items: "{{ instances }}"
+    become: no
+
+
+  - name: copy rsyslog and logrotate config
+    copy:
+      src:  "roles/haproxy/files/{{ item }}"
+      dest: "/etc/{{ item }}.d/haproxy"
+      mode: 0744
+    with_items:
+    - rsyslog
+    - logrotate
+
+  - name: run on systemd
+    systemd:
+      name:  rsyslog
+      state: restarted
