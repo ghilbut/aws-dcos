@@ -64,7 +64,7 @@ beat_tags = '[ "dcos", "master" ]'
 
 [dcos-slave-mlb-external]
 10.0.10.4
-#10.0.10.5
+10.0.10.5
 
 [dcos-slave]
 
