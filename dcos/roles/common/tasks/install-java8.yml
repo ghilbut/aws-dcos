@@ -1,5 +1,5 @@
 ---
-- stat: path="/usr/share/java"
+- stat: path="/usr/share/jdk1.8.0_172"
   register: jdk
 
 - name: install jdk 8
