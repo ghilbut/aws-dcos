@@ -1,7 +1,7 @@
 ---
 - name: install telegraf
   yum:
-    name: https://dl.influxdata.com/telegraf/releases/telegraf-1.6.0-1.x86_64.rpm
+    name: https://dl.influxdata.com/telegraf/releases/telegraf-1.6.1-1.x86_64.rpm
     state: present
 
 - name: set docker permission to user named telegraf

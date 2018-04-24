@@ -15,6 +15,7 @@ filebeat.prospectors:
 exclude_files: ["stdout.logrotate.state", "stdout.logrotate.conf", "stderr.logrotate.state", "stderr.logrotate.conf"]
 tail_files: true
 output.kafka:
+  # https://www.elastic.co/guide/en/beats/filebeat/6.2/kafka-output.html
   hosts: {{ groups.kafka | map('append_text', ':9092') | list | to_json }}
   version: 0.11.0.0
   topic: filebeat-dcos-v1
