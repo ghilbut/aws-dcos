@@ -1,0 +1,8 @@
+---
+dcos:
+  cluster_name: WhaleX
+  domain_name:  whalex.net
+  resolvers:
+  - 10.0.0.2
+  - 8.8.4.4
+  - 8.8.8.8

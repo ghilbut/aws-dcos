@@ -1,0 +1,56 @@
+---
+- name: Install DC/OS Bootstrap Server
+  hosts: dcos-bootstrap
+  gather_facts: no
+  roles:
+  - dcos
+
+  tasks:
+  - include: roles/common/tasks/install-docker.yml
+    vars:
+      docker_block_size: 8
+    become: yes
+
+  - include: roles/common/tasks/install-telegraf.yml
+    vars:
+      telegraf_role: dcos-bootstrap
+    become: yes
+
+  - name: create directory
+    file:
+      path:  /home/centos/dcos/bootstrap/genconf
+      state: directory
+
+  - name: copy ssh key
+    copy:
+      src:  files/platform.pem
+      dest: /home/centos/dcos/bootstrap/genconf/ssh_key
+
+  - name: copy ip-detect
+    copy:
+      src:  roles/bootstrap/files/ip-detect
+      dest: /home/centos/dcos/bootstrap/genconf/ip-detect
+
+  - name: create config.yml
+    template:
+      src:  roles/bootstrap/templates/config.yaml.j2
+      dest: /home/centos/dcos/bootstrap/genconf/config.yaml
+
+  - name: download dcos_generate_config.sh
+    get_url:
+      url:  https://downloads.dcos.io/dcos/stable/1.11.1/dcos_generate_config.sh
+      dest: /home/centos/dcos/bootstrap/dcos_generate_config.sh 
+
+  - name: make bootstrap environments
+    shell: bash dcos_generate_config.sh --genconf
+    args:
+      chdir: /home/centos/dcos/bootstrap
+    become: yes
+
+  - name: create nginx health check file
+    copy:
+      content: OK
+      dest: /home/centos/dcos/bootstrap/genconf/serve/health
+
+  - name: run nginx
+    shell: docker run -d -p 80:80 --name dcos.nginx -v /home/centos/dcos/bootstrap/genconf/serve:/usr/share/nginx/html:ro nginx

@@ -1,0 +1,15 @@
+bootstrap_url: http://bootstrap.{{ dcos.domain_name }}
+cluster_name:  {{ dcos.cluster_name }}
+exhibitor_storage_backend: static
+master_discovery: static
+master_list:
+{% for item in groups['dcos-master'] %}
+- {{ item }}
+{% endfor %}
+oauth_enabled: 'false'
+process_timeout: 120
+resolvers:
+{% for item in dcos.resolvers %}
+- {{ item }}
+{% endfor %}
+ssh_user: centos
