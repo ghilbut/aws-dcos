@@ -43,10 +43,13 @@ frontend http
   bind *:80
   mode http
 
-  acl kibana  hdr(host) kibana.whalex.net
+  acl kibana  hdr(host) kibana.{{ dcos.domain_name }}
   use_backend kibana  if kibana
 
-  acl dcos_master  hdr(host)  master.whalex.net
+  acl dcos_bootstrap  hdr(host)  bootstrap.{{ dcos.domain_name }}
+  use_backend dcos_bootstrap  if dcos_bootstrap
+
+  acl dcos_master  hdr(host)  master.{{ dcos.domain_name }}
   acl exhibitor    path_beg   /exhibitor
   use_backend dcos_master_exhibitor  if dcos_master exhibitor
   use_backend dcos_master            if dcos_master
@@ -65,6 +68,20 @@ backend kibana
   server kibana-{{ item }}  {{ item }}:5601  check  cookie {{ item }}
 {% endfor %}
  
+
+backend dcos_bootstrap
+  balance roundrobin
+  mode http
+  option forwardfor
+  http-request set-header X-Forwarded-Port %[dst_port]
+  http-request add-header X-Forwarded-Proto https if { ssl_fc }
+  cookie HAPROXY_SERVERID insert indirect nocache
+  option httpchk HEAD /health
+  http-check expect status 200
+{% for item in groups['dcos-bootstrap'] %}
+  server bootstrap-{{ item }}  {{ item }}:80  check  cookie {{ item }}
+{% endfor %}
+
 
 backend dcos_master
   balance roundrobin

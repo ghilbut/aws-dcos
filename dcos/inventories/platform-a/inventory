@@ -77,6 +77,7 @@ beat_tags = '[ "dcos", "slave" ]'
 beat_tags = '[ "dcos", "slave-public" ]'
 
 [dcos:children]
+haproxy
 dcos-bootstrap
 dcos-master
 dcos-slave

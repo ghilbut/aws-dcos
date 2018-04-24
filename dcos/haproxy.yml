@@ -2,6 +2,8 @@
 - name: Install HAProxy
   hosts: haproxy
   gather_facts: no
+  roles:
+  - dcos
   become: yes
 
   tasks:
