@@ -28,11 +28,25 @@
       dest: /home/grafana/system/conf/ldap.toml
     register: ldap
 
+  - name: make deploy json
+    local_action:
+      module: template
+      src:  roles/grafana/templates/dcos-grafana-system.json.j2
+      dest: /tmp/dcos-grafana-system.json
+    become: no
+
   - name: start or restart DC/OS service
     uri:
       url:    "http://{{ groups['dcos-master'][0] }}/marathon/v2/apps/grafana/system"
       method: PUT
-      body:   "{{ lookup('file', 'roles/grafana/files/dcos-grafana-system.json') }}"
+      body:   "{{ lookup('file', '/tmp/dcos-grafana-system.json') }}"
       body_format: json
       status_code: 200,201
     when: grafana.changed or ldap.changed
+
+  - name: remove deploy json
+    local_action:
+      module: file
+      path:  /tmp/dcos-grafana-system.json
+      state: absent
+    become: no

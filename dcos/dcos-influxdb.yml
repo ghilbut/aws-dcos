@@ -11,7 +11,7 @@
 
   - include: roles/common/tasks/install-telegraf.yml
     vars:
-      type: dcos-slave
+      telegraf_role: dcos-slave
 
   - include: roles/common/tasks/install-dcos.yml
     vars:
@@ -28,7 +28,7 @@
   #  register: mesos_resource
   #- name: remove DC/OS metadata
   #  file:
-  #    path:  /var/lib/mesos/slave/meta/slaves
+  #    path:  /var/lib/mesos/slave/meta/slaves/latest
   #    state: absent
   #  when: mesos_resource.changed
   #- name: start docker
