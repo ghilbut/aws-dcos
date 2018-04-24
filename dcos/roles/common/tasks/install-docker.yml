@@ -1,25 +1,14 @@
 ---
-- stat: path=/mnt/docker.disk.image
-  register: docker_block_device
-- name: make file for docker block device
+- stat: path=/var/lib/docker
+  register: docker_path
+- name: make file for dcos block device
   shell: "fallocate -l {{ docker_block_size }}GiB /mnt/docker.disk.image"
-  when: not docker_block_device.stat.exists
-- name: format file for docker block device
-  shell: "mkfs.ext4 -F /mnt/docker.disk.image"
-  when: not docker_block_device.stat.exists
-- name: make mount point for docker block device
-  file: path=/var/lib/docker state=directory
-  when: not docker_block_device.stat.exists
-- name: mount docker block device
-  mount:
-    src: /mnt/docker.disk.image
-    name: /var/lib/docker
-    fstype: ext4
-    opts: defaults
-    dump: 1
-    passno: 2
-    state: mounted
-  when: not docker_block_device.stat.exists
+  when: not docker_path.stat.exists
+- include: roles/common/tasks/mount-device-block.yml
+  vars:
+    mount_device: /mnt/docker.disk.image
+    mount_path:   /var/lib/docker
+  when: not docker_path.stat.exists
 
 - name: install docker
   yum:

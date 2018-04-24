@@ -1,0 +1,33 @@
+---
+- name: Install DC/OS Master Agents
+  hosts: dcos-master
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - include: roles/common/tasks/install-docker.yml
+    vars:
+      docker_block_size: 16
+
+  - include: roles/common/tasks/install-telegraf.yml
+    vars:
+      telegraf_role: dcos-master
+
+  #- stat: path=/var/lib/mariadb
+  #  register: mdb_device
+  #- include: roles/common/tasks/mount-device-block.yml
+  #  vars:
+  #    mount_device: /dev/nvme2n1
+  #    mount_path:   /var/lib/mariadb
+  #  when: not mdb_device.stat.exists
+
+  - include: roles/common/tasks/install-dcos.yml
+    vars:
+      bootstrap: "{{ groups['dcos-bootstrap'][0] }}"
+      dcos_block_size: 4
+      dcos_mode: master
+
+  - include: roles/common/tasks/install-dcos-filebeat.yml
+    vars:
+      beat_tags = '[ "dcos", "master" ]'
+

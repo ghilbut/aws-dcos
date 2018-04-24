@@ -54,3 +54,4 @@
 
   - name: run nginx
     shell: docker run -d -p 80:80 --name dcos.nginx -v /home/centos/dcos/bootstrap/genconf/serve:/usr/share/nginx/html:ro nginx
+    become: yes

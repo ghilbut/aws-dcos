@@ -1,47 +1,22 @@
 ---
-- stat: path=/mnt/dcos.disk.image
-  register: dcos_block_device
+- stat: path=/var/lib/dcos
+  register: dcos_path
 - name: make file for dcos block device
   shell: "fallocate -l {{ dcos_block_size }}GiB /mnt/dcos.disk.image"
-  when: not dcos_block_device.stat.exists
-- name: format file for dcos block device
-  shell: "mkfs.ext4 -F /mnt/dcos.disk.image"
-  when: not dcos_block_device.stat.exists
-- name: make mount point for dcos block device
-  file: path=/var/lib/dcos state=directory
-  when: not dcos_block_device.stat.exists
-- name: mount dcos block device
-  mount:
-    src: /mnt/dcos.disk.image
-    name: /var/lib/dcos
-    fstype: ext4
-    opts: defaults
-    dump: 1
-    passno: 2
-    state: mounted
-  when: not dcos_block_device.stat.exists
+  when: not dcos_path.stat.exists
+- include: roles/common/tasks/mount-device-block.yml
+  vars:
+    mount_device: /mnt/dcos.disk.image
+    mount_path:   /var/lib/dcos
+  when: not dcos_path.stat.exists
 
-- stat: path=/mnt/dcos-log.disk.image
-  register: dcos_log_block_device
-- name: make file for dcos log block device
-  shell: "fallocate -l 1GiB /mnt/dcos-log.disk.image"
-  when: not dcos_log_block_device.stat.exists
-- name: format file for dcos log block device
-  shell: "mkfs.ext4 -F /mnt/dcos-log.disk.image"
-  when: not dcos_log_block_device.stat.exists
-- name: make mount point for dcos log block device
-  file: path=/var/log/dcos state=directory
-  when: not dcos_log_block_device.stat.exists
-- name: mount dcos log block device
-  mount:
-    src: /mnt/dcos-log.disk.image
-    name: /var/log/dcos
-    fstype: ext4
-    opts: defaults
-    dump: 1
-    passno: 2
-    state: mounted
-  when: not dcos_log_block_device.stat.exists
+- stat: path=/var/lib/dcos/exhibitor/zookeeper
+  register: zk_device
+- include: roles/common/tasks/mount-device-block.yml
+  vars:
+    mount_device: /dev/nvme1n1
+    mount_path:   /var/lib/dcos/exhibitor/zookeeper
+  when: dcos_mode == 'master' and not zk_device.stat.exists
 
 - name: add groups
   group:

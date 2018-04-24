@@ -1,0 +1,16 @@
+---
+- name: format block device
+  shell: "mkfs.ext4 -F {{ mount_device }}"
+- name: make mount point for block device
+  file:
+    path:  "{{ mount_path }}"
+    state: directory
+- name: mount block device
+  mount:
+    src:    "{{ mount_device }}"
+    name:   "{{ mount_path }}"
+    fstype: ext4
+    opts:   defaults
+    dump:   1
+    passno: 2
+    state:  mounted
