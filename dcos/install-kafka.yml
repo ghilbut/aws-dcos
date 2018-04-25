@@ -7,10 +7,6 @@
   become: yes
 
   tasks:
-  - include: roles/common/tasks/install-docker.yml
-    vars:
-      docker_block_size: 4
-
   - include: roles/common/tasks/install-telegraf.yml
     vars:
       telegraf_role: kafka
@@ -50,6 +46,22 @@
     when: not kafka_path.stat.exists
   - file:
       path:  /var/lib/kafka/data
+      state: directory
+      group: kafka
+      owner: kafka
+
+  - stat: path=/var/log/kafka
+    register: kafka_log_path
+  - name: make file for log block device
+    shell: "fallocate -l 1GiB /mnt/kafka_log.disk.image"
+    when: not kafka_log_path.stat.exists
+  - include: roles/common/tasks/mount-device-block.yml
+    vars:
+      mount_device: /mnt/kafka_log.disk.image
+      mount_path:   /var/log/kafka
+    when: not kafka_log_path.stat.exists
+  - file:
+      path:  /var/log/kafka
       state: directory
       group: kafka
       owner: kafka

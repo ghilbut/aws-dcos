@@ -4,12 +4,17 @@
     name: https://dl.influxdata.com/telegraf/releases/telegraf-1.6.1-1.x86_64.rpm
     state: present
 
+- name: check docker
+  stat: path=/var/lib/docker
+  register: docker_path
+
 - name: set docker permission to user named telegraf
   user:
     name:   telegraf
     group:  telegraf
     groups: docker
     append: yes
+  when: docker_path.stat.exists
 
 - name: check backup state
   stat: path=/etc/telegraf/telegraf.conf.bak
@@ -21,6 +26,8 @@
     dest: /etc/telegraf/telegraf.conf.bak
   when: not backup.stat.exists
 - name: copy config
+  vars:
+    docker: docker_path.stat.exists
   template:
     src:  roles/common/templates/telegraf.conf.j2
     dest: /etc/telegraf/telegraf.conf

@@ -173,6 +173,7 @@
   # no configuration
 
 
+{% if docker == 'true' %}
 # Collects conntrack stats from the configured directories and files.
 [[inputs.conntrack]]
    ## The following defaults would work with multiple versions of conntrack.
@@ -234,6 +235,7 @@
   # ssl_key = "/etc/telegraf/key.pem"
   ## Use SSL but skip chain & host verification
   # insecure_skip_verify = false
+{% endif %}
 
 
 # Read metrics about network interface usage
