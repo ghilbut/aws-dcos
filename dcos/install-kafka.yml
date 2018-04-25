@@ -1,0 +1,80 @@
+---
+- name: Install Kafka Brokers
+  hosts: kafka
+  gather_facts: no
+  roles:
+  - kafka
+  become: yes
+
+  tasks:
+  - include: roles/common/tasks/install-docker.yml
+    vars:
+      docker_block_size: 4
+
+  - include: roles/common/tasks/install-telegraf.yml
+    vars:
+      telegraf_role: kafka
+
+  - include: roles/common/tasks/install-java8.yml
+
+
+  - name: create group named kafka
+    group:
+      name: kafka
+  - name: create user named kafka
+    user:
+      #create_home: no  # ansible 2.5 and later
+      createhome: no
+      group: kafka
+      name:  kafka
+
+  - stat: path="/usr/share/kafka_2.12-1.1.0"
+    register: kafka_path
+  - name: uncompress kafka
+    unarchive:
+      src:  roles/kafka/files/kafka_2.12-1.1.0.tgz
+      dest: /usr/share
+    when: not kafka_path.stat.exists
+  - name:
+    file:
+      src:   /usr/share/kafka_2.12-1.1.0
+      dest:  /usr/share/kafka
+      state: link
+
+  - stat: path=/var/lib/kafka
+    register: kafka_path
+  - include: roles/common/tasks/mount-device-block.yml
+    vars:
+      mount_device: /dev/nvme0n1
+      mount_path:   /var/lib/kafka
+    when: not kafka_path.stat.exists
+  - file:
+      path:  /var/lib/kafka/data
+      state: directory
+      group: kafka
+      owner: kafka
+
+
+  - file:
+      path:  /etc/kafka
+      state: directory
+  - name: create server.properties
+    vars:
+      log_segment_bytes: 1717986918
+    template:
+      src:  roles/kafka/templates/server.properties.j2
+      dest: /etc/kafka/server.properties
+
+  - name: create systemd service file
+    vars:
+      jvm_heap_size: 30
+    template:
+      src:  roles/kafka/templates/kafka.service.j2
+      dest: /usr/lib/systemd/system/kafka.service 
+
+  - name: start kafka
+    systemd:
+      daemon-reload: yes
+      enabled: yes
+      name:    kafka
+      state:   started

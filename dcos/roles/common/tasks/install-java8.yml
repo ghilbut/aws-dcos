@@ -1,23 +1,21 @@
 ---
 - stat: path="/usr/share/jdk1.8.0_172"
-  register: jdk
+  register: jdk_path
 
 - name: install jdk 8
   unarchive:
     src:  files/jdk-8u172-linux-x64.tar.gz
     dest: "/usr/share"
-  when: not jdk.stat.exists
+  when: not jdk_path.stat.exists
 
 - name: make synbolic link named java
   file:
     src:   "/usr/share/jdk1.8.0_172"
     dest:  "/usr/share/java"
     state: link
-  when: not jdk.stat.exists
 
 - name: make symbolic link /usr/bin/java
   file:
     src:   "/usr/share/java/bin/java"
     dest:  "/usr/bin/java"
     state: link
-  when: not jdk.stat.exists
