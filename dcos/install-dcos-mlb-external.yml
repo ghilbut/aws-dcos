@@ -85,8 +85,7 @@
     local_action:
       module: template
       src:  roles/marathon-lb/templates/dcos-marathon-lb.json.j2
-      dest: "/tmp/mlb-{{ item }}.json"
-    with_items: "{{ instances }}"
+      dest: "/tmp/mlb-{{ inventory_hostname }}.json"
     become: no
 
   - name: start or restart DC/OS service
@@ -101,9 +100,8 @@
   - name: remove json for marathon
     local_action:
       module: file
-      path:  "/tmp/mlb-{{ item }}.json"
+      path:  "/tmp/mlb-{{ inventory_hostname }}.json"
       state: absent
-    with_items: "{{ instances }}"
     become: no
 
 
