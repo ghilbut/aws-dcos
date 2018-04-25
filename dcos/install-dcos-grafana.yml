@@ -20,19 +20,18 @@
     template:
       src:  roles/grafana/templates/dcos-grafana-system.ini.j2
       dest: /home/grafana/system/conf/grafana.ini
-    register: grafana
 
   - name: set ldap of grafana for system
     template:
       src:  roles/grafana/templates/dcos-grafana-system-ldap.toml.j2
       dest: /home/grafana/system/conf/ldap.toml
-    register: ldap
 
   - name: make deploy json
     local_action:
       module: template
       src:  roles/grafana/templates/dcos-grafana-system.json.j2
       dest: /tmp/dcos-grafana-system.json
+    run_once: true
     become: no
 
   - name: start or restart DC/OS service
@@ -42,11 +41,12 @@
       body:   "{{ lookup('file', '/tmp/dcos-grafana-system.json') }}"
       body_format: json
       status_code: 200,201
-    when: grafana.changed or ldap.changed
+    run_once: true
 
   - name: remove deploy json
     local_action:
       module: file
       path:  /tmp/dcos-grafana-system.json
       state: absent
+    run_once: true
     become: no
