@@ -93,10 +93,28 @@
   write_consistency = "any"
 
   timeout = "5s"
-  username = "mytest"
+  username = "telegraf-system-v1"
   password = "mytest"
   [outputs.influxdb.tagpass]
     topic = ["telegraf-system-v1"]
+
+
+[[outputs.influxdb]]
+  urls = ["http://{{ inventory_hostname }}:8086"] # required
+  database = "telegraf_infra_v1"
+
+  ## Name of existing retention policy to write to.  Empty string writes to
+  ## the default retention policy.
+  retention_policy = ""
+  ## Write consistency (clusters only), can be: "any", "one", "quorum", "all"
+  write_consistency = "any"
+
+  timeout = "5s"
+  username = "telegraf-infra-v1"
+  password = "mytest"
+  [outputs.influxdb.tagpass]
+    topic = ["telegraf-infra-v1"]
+
 
 
 ###############################################################################
@@ -112,3 +130,14 @@
   max_message_len = 65536
   [inputs.kafka_consumer.tags]
     topic = "telegraf-system-v1"
+
+
+[[inputs.kafka_consumer]]
+  brokers = {{ groups.kafka | map('append_text', ':9092') | list | to_json }}
+  topics = ["telegraf-infra-v1"]
+  consumer_group = "influxdb-{{ inventory_hostname }}"
+  offset = "oldest"
+  data_format = "influx"
+  max_message_len = 65536
+  [inputs.kafka_consumer.tags]
+    topic = "telegraf-infra-v1"
