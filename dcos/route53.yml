@@ -1,0 +1,33 @@
+---
+- name: Create EC2 Instance for DC/OS Bootstrap Server
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    inifile:    "{{ inventory_dir }}/files/aws.ini"
+    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
+    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
+    vpc_id:     "{{ lookup('ini', 'vpc section=network file=' + inifile) }}"
+
+  tasks:
+  - route53_zone:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      comment:        "{{ aws.region + ': ' + aws.network.vpc.name }}"
+      region:         "{{ aws.region }}"
+      vpc_id:         "{{ vpc_id }}"
+      vpc_region:     "{{ aws.region }}" 
+      zone:           dcos.in
+      state:          present
+
+  - route53:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      command:        create  # valid ansible 2.3 and lesser
+      private_zone:   yes
+      record:         "bootstrap-{{ aws.zone }}.dcos.in"
+      #state:          present  # valid ansible 2.4 and later
+      type:           A
+      value:          "{{ groups['dcos-bootstrap'][0] }}"
+      vpc_id:         "{{ vpc_id }}"
+      zone:           dcos.in

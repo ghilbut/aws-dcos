@@ -4,5 +4,38 @@ aws:
   zone:   a
   organization: platform
   owner:  ghilbut
+  network:
+    vpc:
+      name: platform
+      cidr: 10.0.0.0/16
+    subnets:
+      mgmt:
+      - az:     a
+        cidr:   10.0.0.0/24
+        suffix: mgmt-0a
+      - az:     c
+        cidr:   10.0.1.0/24
+        suffix: mgmt-1c
+      network:
+      - az:     a
+        cidr:   10.0.8.0/24
+        suffix: network-a
+      - az:     c
+        cidr:   10.0.9.0/24
+        suffix: network-c
+      private:
+      - az:     a
+        cidr:   10.0.10.0/24
+        suffix: private-10a
+      - az:     c
+        cidr:   10.0.11.0/24
+        suffix: private-11c
+      public:
+      - az:     a
+        cidr:   10.0.254.0/24
+        suffix: public-254a
+      - az:     c
+        cidr:   10.0.255.0/24
+        suffix: public-255c
   ami:
     centos: ami-995cf3f7
