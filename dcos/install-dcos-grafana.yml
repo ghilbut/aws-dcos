@@ -26,7 +26,7 @@
       src:  roles/grafana/templates/dcos-grafana-system-ldap.toml.j2
       dest: /home/grafana/system/conf/ldap.toml
 
-  - name: make deploy json
+  - name: create deploy json
     local_action:
       module: template
       src:  roles/grafana/templates/dcos-grafana-system.json.j2
