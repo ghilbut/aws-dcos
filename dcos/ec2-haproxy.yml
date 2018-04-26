@@ -1,5 +1,5 @@
 ---
-- name: Create EC2 Instance for HAProxy Servers
+- name: Create EC2 Instance(s) for HAProxy Servers
   hosts: localhost
   connection: local
   gather_facts: False
@@ -13,7 +13,7 @@
     instances:  "{{ groups['haproxy'] }}"
 
   tasks:
-  - name: launch ec2 instances for haproxy
+  - name: launch ec2 instance(s) for haproxy
     ec2:
       assign_public_ip: yes
       aws_access_key:   "{{ access_key }}"
@@ -43,8 +43,8 @@
     with_items: "{{ instances }}"
 
 
-- name: Wait running EC2 instances
-  hosts: es6-coord
+- name: Wait running EC2 instance(s)
+  hosts: haproxy
   gather_facts: no
   become: yes
 
