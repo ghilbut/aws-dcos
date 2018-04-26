@@ -2,6 +2,8 @@
 - name: Install InfluxDB servers
   hosts: influxdb
   gather_facts: no
+  roles:
+  - influxdb
   become: yes
 
   tasks:
@@ -56,16 +58,27 @@
     register: config
 
 
-  # https://docs.influxdata.com/influxdb/v1.5/query_language/authentication_and_authorization/
+  - name: create deploy json
+    local_action:
+      module: template
+      src:  roles/influxdb/templates/dcos-influxdb.json.j2
+      dest: /tmp/dcos-influxdb.json
+    run_once: true
+    become: no
 
-  # TODO: docker run --rm -it influxdb:1.5.2 influx -host 10.0.0.4
-  #       > CREATE DATABASE telegraf_system_v1
-  #       > USE telegraf_system_v1
-  #       > CREATE USER <username> WITH PASSWORD '<password>' WITH ALL PRIVILEGES
-  # WARNING: change ALL PRIVILEGES to smaller grant
+  - name: start or restart DC/OS service
+    uri:
+      url:    "http://{{ groups['dcos-master'][0] }}/marathon/v2/apps/influxdb"
+      method: PUT
+      body:   "{{ lookup('file', '/tmp/dcos-influxdb.json') }}"
+      body_format: json
+      status_code: 200,201
+    run_once: true
 
-  # TODO: docker run --rm -it influxdb:1.5.2 influx -host 10.0.0.5
-  #       > CREATE DATABASE telegraf_system_v1
-  #       > USE telegraf_system_v1
-  #       > CREATE USER <username> WITH PASSWORD '<password>' WITH ALL PRIVILEGES
-  # WARNING: change ALL PRIVILEGES to smaller grant
+  - name: remove deploy json
+    local_action:
+      module: file
+      path:  /tmp/dcos-influxdb.json
+      state: absent
+    run_once: true
+    become: no

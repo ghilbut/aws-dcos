@@ -1,10 +1,10 @@
 {
-  "id": "{{ id }}",
-  "instances": 1,
+  "id": "influxdb",
+  "instances": 2,
   "cpus": 4,
   "mem": 32768,
   "acceptedResourceRoles": [
-    "influxdb"
+    "*"
   ],
   "args": [
     "-config",
@@ -13,8 +13,12 @@
   "constraints": [
     [
       "hostname",
+      "UNIQUE"
+    ],
+    [
+      "hostname",
       "LIKE",
-      "{{ host }}"
+      "{{ influxdb.constraint }}"
     ]
   ],
   "container": {
