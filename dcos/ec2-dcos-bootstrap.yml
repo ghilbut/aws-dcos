@@ -13,7 +13,7 @@
     instances:  "{{ groups['dcos-bootstrap'] }}"
 
   tasks:
-  - name: launch ec2 instances for DC/OS bootstrap server
+  - name: launch ec2 instance for DC/OS bootstrap server
     ec2:
       aws_access_key: "{{ access_key }}"
       aws_secret_key: "{{ secret_key }}"
@@ -42,7 +42,7 @@
     with_items: "{{ instances }}"
 
 
-- name: Wait running EC2 instances
+- name: Wait running EC2 instance
   hosts: dcos-bootstrap
   gather_facts: no
   become: yes

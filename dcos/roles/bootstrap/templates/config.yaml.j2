@@ -1,4 +1,4 @@
-bootstrap_url: http://bootstrap.{{ dcos.domain_name }}
+bootstrap_url: http://bootstrap-{{ aws.zone }}.dcos.in
 cluster_name:  {{ dcos.cluster_name }}
 exhibitor_storage_backend: static
 master_discovery: static
