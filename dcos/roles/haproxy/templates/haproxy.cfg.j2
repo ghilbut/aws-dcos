@@ -50,9 +50,7 @@ frontend http
   use_backend dcos_bootstrap  if dcos_bootstrap
 
   acl dcos_master  hdr(host)  master.{{ dcos.domain_name }}
-  acl exhibitor    path_beg   /exhibitor
-  use_backend dcos_master_exhibitor  if dcos_master exhibitor
-  use_backend dcos_master            if dcos_master
+  use_backend dcos_master  if dcos_master
 
   default_backend mlb_external
 
