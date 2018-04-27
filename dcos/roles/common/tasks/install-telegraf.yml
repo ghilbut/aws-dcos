@@ -25,13 +25,13 @@
     src:  /etc/telegraf/telegraf.conf
     dest: /etc/telegraf/telegraf.conf.bak
   when: not backup.stat.exists
+- debug: var=docker_path.stat.exists
 - name: copy config
   vars:
     docker_installed: docker_path.stat.exists
   template:
     src:  roles/common/templates/telegraf.conf.j2
     dest: /etc/telegraf/telegraf.conf
-  register: config
 - name: check validation
   shell: /usr/bin/telegraf -config /etc/telegraf/telegraf.conf -test
 
