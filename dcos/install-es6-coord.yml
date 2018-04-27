@@ -7,13 +7,9 @@
   become: yes
 
   tasks:
-  - include: roles/common/tasks/install-docker.yml
-    vars:
-      docker_block_size: 4
-
   - include: roles/common/tasks/install-telegraf.yml
     vars:
-      type: es6-coord
+      telegraf_role: es6-coord
 
   - include: roles/common/tasks/install-java8.yml
 

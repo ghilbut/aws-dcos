@@ -22,6 +22,11 @@
       dcos_mode: slave
 
   - include: roles/common/tasks/install-dcos-filebeat.yml
+    vars:
+      beat_tags:
+      - dcos
+      - slave
+      - influxdb
 
   #- name: replace resource rules
   #  copy:

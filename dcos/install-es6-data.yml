@@ -13,7 +13,7 @@
 
   - include: roles/common/tasks/install-telegraf.yml
     vars:
-      type: es6-data
+      telegraf_role: es6-data
 
   - include: roles/common/tasks/install-java8.yml
 

@@ -46,13 +46,10 @@ frontend http
   acl kibana  hdr(host) kibana.{{ dcos.domain_name }}
   use_backend kibana  if kibana
 
-  acl dcos_bootstrap  hdr(host)  bootstrap.{{ dcos.domain_name }}
-  use_backend dcos_bootstrap  if dcos_bootstrap
-
   acl dcos_master  hdr(host)  master.{{ dcos.domain_name }}
   use_backend dcos_master  if dcos_master
 
-  default_backend mlb_external
+  default_backend dcos_mlb_external
 
 
 backend kibana
@@ -64,20 +61,6 @@ backend kibana
   cookie HAPROXY_SERVERID insert indirect nocache
 {% for item in groups['kibana'] %}
   server kibana-{{ item }}  {{ item }}:5601  check  cookie {{ item }}
-{% endfor %}
- 
-
-backend dcos_bootstrap
-  balance roundrobin
-  mode http
-  option forwardfor
-  http-request set-header X-Forwarded-Port %[dst_port]
-  http-request add-header X-Forwarded-Proto https if { ssl_fc }
-  cookie HAPROXY_SERVERID insert indirect nocache
-  option httpchk HEAD /health
-  http-check expect status 200
-{% for item in groups['dcos-bootstrap'] %}
-  server bootstrap-{{ item }}  {{ item }}:80  check  cookie {{ item }}
 {% endfor %}
 
 
@@ -95,21 +78,7 @@ backend dcos_master
 {% endfor %}
 
 
-backend dcos_master_exhibitor
-  balance roundrobin
-  mode http
-  option forwardfor
-  http-request set-header X-Forwarded-Port %[dst_port]
-  http-request add-header X-Forwarded-Proto https if { ssl_fc }
-  cookie HAPROXY_SERVERID insert indirect nocache
-  option httpchk GET /exhibitor/v1/cluster/state
-  http-check expect status 200
-{% for item in groups['dcos-master'] %}
-  server master-{{ item }}  {{ item }}:8181   check  cookie {{ item }}
-{% endfor %}
-
-
-backend mlb_external
+backend dcos_mlb_external
   balance roundrobin
   mode http
   option forwardfor

@@ -29,4 +29,6 @@
 
   - include: roles/common/tasks/install-dcos-filebeat.yml
     vars:
-      beat_tags: '[ "dcos", "master" ]'
+      beat_tags:
+      - dcos
+      - master

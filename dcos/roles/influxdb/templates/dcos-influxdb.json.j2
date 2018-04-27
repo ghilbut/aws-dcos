@@ -1,6 +1,6 @@
 {
   "id": "influxdb",
-  "instances": 2,
+  "instances": {{ play_hosts | length }},
   "cpus": 4,
   "mem": 32768,
   "acceptedResourceRoles": [
