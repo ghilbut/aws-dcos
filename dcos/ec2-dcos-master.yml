@@ -9,8 +9,8 @@
     secret_key:     "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
     security_group: "{{ lookup('ini', 'private section=security_group file=' + inifile) }}"
     subnet:         "{{ lookup('ini', 'mgmt_0 section=subnet file=' + inifile) }}"
-    ec2_name:   "ec2-dcos-master-{{ aws.zone }}"
-    instances:  "{{ groups['dcos-master'] }}"
+    ec2_name:   "ec2-{{ zone }}-dcos-master"
+    instances:  "{{ groups['dcos-master-' + zone] }}"
 
   tasks:
   - name: launch ec2 instances for DC/OS master agents
@@ -53,7 +53,7 @@
 
 
 - name: Wait running EC2 instances
-  hosts: dcos-master
+  hosts: "dcos-master-{{ zone }}"
   gather_facts: no
   become: yes
 

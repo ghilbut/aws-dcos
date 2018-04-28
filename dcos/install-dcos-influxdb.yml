@@ -1,6 +1,6 @@
 ---
 - name: Install InfluxDB servers
-  hosts: influxdb
+  hosts: "influxdb-{{ zone }}"
   gather_facts: no
   roles:
   - influxdb
@@ -17,7 +17,7 @@
 
   - include: roles/common/tasks/install-dcos.yml
     vars:
-      bootstrap: "{{ groups['dcos-bootstrap'][0] }}"
+      bootstrap: "{{ groups['dcos-bootstrap-' + zone][0] }}"
       dcos_block_size: 4
       dcos_mode: slave
 
@@ -67,23 +67,20 @@
     local_action:
       module: template
       src:  roles/influxdb/templates/dcos-influxdb.json.j2
-      dest: /tmp/dcos-influxdb.json
-    run_once: true
+      dest: "/tmp/dcos-influxdb-{{ inventory_hostname }}.json"
     become: no
 
   - name: start or restart DC/OS service
     uri:
-      url:    "http://{{ groups['dcos-master'][0] }}/marathon/v2/apps/influxdb"
+      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/{{ zone }}-influxdb-{{ inventory_hostname }}"
       method: PUT
-      body:   "{{ lookup('file', '/tmp/dcos-influxdb.json') }}"
+      body:   "{{ lookup('file', '/tmp/dcos-influxdb-' + inventory_hostname  + '.json') }}"
       body_format: json
       status_code: 200,201
-    run_once: true
 
   - name: remove deploy json
     local_action:
       module: file
-      path:  /tmp/dcos-influxdb.json
+      path:  "/tmp/dcos-influxdb-{{ inventory_hostname }}.json"
       state: absent
-    run_once: true
     become: no

@@ -1,6 +1,6 @@
 ---
 - name: Install Elasticsearch 6.x Data Nodes
-  hosts: es6-data
+  hosts: "es6-data-{{ zone }}"
   gather_facts: no
   environment:
     JAVA_HOME: /usr/share/java

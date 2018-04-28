@@ -1,9 +1,9 @@
-bootstrap_url: http://bootstrap-{{ aws.zone }}.dcos.in
-cluster_name:  {{ dcos.cluster_name + ' - ' + aws.zone|upper }}
+bootstrap_url: http://bootstrap-{{ zone }}.dcos.in
+cluster_name:  {{ dcos.cluster_name + ' - ' + zone|upper }}
 exhibitor_storage_backend: static
 master_discovery: static
 master_list:
-{% for item in groups['dcos-master'] %}
+{% for item in groups['dcos-master-' + zone] %}
 - {{ item }}
 {% endfor %}
 oauth_enabled: 'false'

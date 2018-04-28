@@ -1,6 +1,6 @@
 ---
 - name: Install DC/OS Bootstrap Server
-  hosts: dcos-bootstrap
+  hosts: "dcos-bootstrap-{{ zone }}"
   gather_facts: no
   roles:
   - dcos

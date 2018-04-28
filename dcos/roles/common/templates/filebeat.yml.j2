@@ -16,7 +16,7 @@ exclude_files: ["stdout.logrotate.state", "stdout.logrotate.conf", "stderr.logro
 tail_files: true
 output.kafka:
   # https://www.elastic.co/guide/en/beats/filebeat/6.2/kafka-output.html
-  hosts: {{ groups.kafka | map('append_text', ':9092') | list | to_json }}
+  hosts: {{ groups['kafka-' + zone] | map('append_text', ':9092') | list | to_json }}
   version: 0.11.0.0
   topic: filebeat-dcos-v1
   compression: snappy

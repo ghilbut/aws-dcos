@@ -9,8 +9,8 @@
     secret_key:     "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
     security_group: "{{ lookup('ini', 'private section=security_group file=' + inifile) }}"
     subnet:         "{{ lookup('ini', 'private_10 section=subnet file=' + inifile) }}"
-    ec2_name:   "ec2-dcos-mlb-external-{{ aws.zone }}"
-    instances:  "{{ groups['dcos-slave-mlb-external'] }}"
+    ec2_name:   "ec2-{{ zone }}-dcos-mlb-external"
+    instances:  "{{ groups['dcos-slave-mlb-external-' + zone] }}"
 
   tasks:
   - name: launch ec2 instances for marathon-lb external
@@ -43,7 +43,7 @@
 
 
 - name: Wait running EC2 instances
-  hosts: dcos-slave-mlb-external
+  hosts: "dcos-slave-mlb-external-{{ zone }}"
   gather_facts: no
   become: yes
 

@@ -9,8 +9,8 @@
     secret_key:     "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
     security_group: "{{ lookup('ini', 'public section=security_group file=' + inifile) }}"
     subnet:         "{{ lookup('ini', 'public_254 section=subnet file=' + inifile) }}"
-    ec2_name:   "ec2-haproxy-{{ aws.zone }}"
-    instances:  "{{ groups['haproxy'] }}"
+    ec2_name:   "ec2-{{ zone }}-haproxy"
+    instances:  "{{ groups['haproxy-' + zone] }}"
 
   tasks:
   - name: launch ec2 instance(s) for haproxy
@@ -44,7 +44,7 @@
 
 
 - name: Wait running EC2 instance(s)
-  hosts: haproxy
+  hosts: "haproxy-{{ zone }}"
   gather_facts: no
   become: yes
 

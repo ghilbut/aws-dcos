@@ -1,6 +1,6 @@
 ---
 - name: Install Kibana
-  hosts: kibana
+  hosts: "kibana-{{ zone }}"
   gather_facts: no
   environment:
     JAVA_HOME: /usr/share/java

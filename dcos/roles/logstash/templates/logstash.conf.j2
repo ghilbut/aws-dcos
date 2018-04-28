@@ -1,6 +1,6 @@
 input {
   kafka {
-    bootstrap_servers => "{{ groups.kafka | map('append_text', ':9092') | list | join(',') }}"
+    bootstrap_servers => "{{ groups['kafka-' + zone] | map('append_text', ':9092') | list | join(',') }}"
     client_id => "{{ inventory_hostname }}"
     codec => json
     consumer_threads => {{ kafka_consumer_threads }}
@@ -21,7 +21,7 @@ filter {
 output {
   if [@metadata][kafka][topic] == "filebeat-dcos-v1" {
     elasticsearch {
-      hosts => {{ groups['es6-coord'] | map('append_text', ':9200') | list | to_json }}
+      hosts => {{ groups['es6-coord-' + zone] | map('append_text', ':9200') | list | to_json }}
       manage_template => false
       index => "dcos-v1-%{+YYYY.MM.dd}"
       timeout => 60

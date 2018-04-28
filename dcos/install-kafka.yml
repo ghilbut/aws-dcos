@@ -1,6 +1,6 @@
 ---
 - name: Install Kafka Brokers
-  hosts: kafka
+  hosts: "kafka-{{ zone }}"
   gather_facts: no
   roles:
   - kafka
@@ -37,18 +37,21 @@
       dest:  /usr/share/kafka
       state: link
 
-  - stat: path=/var/lib/kafka
+  - stat: path=/var/lib/kafka/data0
     register: kafka_path
   - include: roles/common/tasks/mount-device-block.yml
     vars:
-      mount_device: /dev/nvme0n1
-      mount_path:   /var/lib/kafka
+      mount_device: /dev/xvdb
+      mount_path:   /var/lib/kafka/data0
     when: not kafka_path.stat.exists
   - file:
-      path:  /var/lib/kafka/data
+      path:  /var/lib/kafka/data0
       state: directory
       group: kafka
       owner: kafka
+  - file:
+      path:  /var/lib/kafka/data0/lost+found
+      state: absent
 
   - stat: path=/var/log/kafka
     register: kafka_log_path
@@ -72,14 +75,16 @@
       state: directory
   - name: create server.properties
     vars:
-      log_segment_bytes: 1717986918
+      log_segment_bytes: 1073741824
+      volumes:
+      - /var/lib/kafka/data0
     template:
       src:  roles/kafka/templates/server.properties.j2
       dest: /etc/kafka/server.properties
 
   - name: create systemd service file
     vars:
-      jvm_heap_size: 30
+      jvm_heap_size: 15
     template:
       src:  roles/kafka/templates/kafka.service.j2
       dest: /usr/lib/systemd/system/kafka.service 

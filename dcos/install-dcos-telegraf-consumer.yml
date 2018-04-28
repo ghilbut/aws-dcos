@@ -1,6 +1,6 @@
 ---
 - name: Install Telegraf Kafka Consumers
-  hosts: telegraf
+  hosts: "telegraf-{{ zone }}"
   gather_facts: no
   become: yes
 
@@ -29,7 +29,7 @@
 
   - name: start or restart DC/OS service
     uri:
-      url:    "http://{{ groups['dcos-master'][0] }}/marathon/v2/apps/telegraf-consumer-{{ inventory_hostname }}"
+      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/{{ zone }}-telegraf-consumer-{{ inventory_hostname }}"
       method: PUT
       body:   "{{ lookup('file', '/tmp/telegraf-consumer-' + inventory_hostname + '.json') }}"
       body_format: json

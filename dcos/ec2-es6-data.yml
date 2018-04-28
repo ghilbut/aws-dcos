@@ -9,8 +9,8 @@
     secret_key:     "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
     security_group: "{{ lookup('ini', 'private section=security_group file=' + inifile) }}"
     subnet:         "{{ lookup('ini', 'mgmt_0 section=subnet file=' + inifile) }}"
-    ec2_name:   ec2-dcos-es6-data-a
-    instances:  "{{ groups['es6-data'] }}"
+    ec2_name:   "ec2-{{ zone }}-dcos-es6-data"
+    instances:  "{{ groups['es6-data-' + zone] }}"
 
   tasks:
   - name: launch ec2 instance for elasticsearch 6.x data nodes
@@ -43,7 +43,7 @@
 
 
 - name: Wait running EC2 instances
-  hosts: es6-data
+  hosts: "es6-data-{{ zone }}"
   gather_facts: no
   become: yes
 

@@ -59,7 +59,7 @@ backend kibana
   http-request set-header X-Forwarded-Port %[dst_port]
   http-request add-header X-Forwarded-Proto https if { ssl_fc }
   cookie HAPROXY_SERVERID insert indirect nocache
-{% for item in groups['kibana'] %}
+{% for item in groups['kibana-' + zone] %}
   server kibana-{{ item }}  {{ item }}:5601  check  cookie {{ item }}
 {% endfor %}
 
@@ -73,7 +73,7 @@ backend dcos_master
   cookie HAPROXY_SERVERID insert indirect nocache
   option httpchk HEAD /
   http-check expect status 200
-{% for item in groups['dcos-master'] %}
+{% for item in groups['dcos-master-' + zone] %}
   server master-{{ item }}  {{ item }}:80  check  cookie {{ item }}
 {% endfor %}
 
@@ -87,6 +87,6 @@ backend dcos_mlb_external
   cookie HAPROXY_SERVERID insert indirect nocache
   option httpchk GET /_marathon_lb_healthcheck
   http-check expect status 200
-{% for item in groups['dcos-slave-mlb-external'] %}
+{% for item in groups['dcos-slave-mlb-external-' + zone] %}
   server mlb-{{ item }}  {{ item }}:80  check  cookie {{ item }}
 {% endfor %}

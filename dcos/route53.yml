@@ -25,9 +25,21 @@
       aws_secret_key: "{{ secret_key }}"
       command:        create  # valid ansible 2.3 and lesser
       private_zone:   yes
-      record:         "bootstrap-{{ aws.zone }}.dcos.in"
+      record:         "bootstrap-a.dcos.in"
       #state:          present  # valid ansible 2.4 and later
       type:           A
-      value:          "{{ groups['dcos-bootstrap'][0] }}"
+      value:          "{{ groups['dcos-bootstrap-a'][0] }}"
+      vpc_id:         "{{ vpc_id }}"
+      zone:           dcos.in
+
+  - route53:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      command:        create  # valid ansible 2.3 and lesser
+      private_zone:   yes
+      record:         "bootstrap-c.dcos.in"
+      #state:          present  # valid ansible 2.4 and later
+      type:           A
+      value:          "{{ groups['dcos-bootstrap-c'][0] }}"
       vpc_id:         "{{ vpc_id }}"
       zone:           dcos.in

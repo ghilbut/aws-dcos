@@ -1,13 +1,11 @@
 ---
 - name: Install Marathon-LB External
-  hosts: dcos-slave-mlb-external
+  hosts: "dcos-slave-mlb-external-{{ zone }}"
   gather_facts: no
   roles:
   - common
   - haproxy
   #- marathon-lb
-  vars:
-    instances: "{{ groups['dcos-slave-mlb-external'] }}"
   become: yes
 
   tasks:
@@ -21,7 +19,7 @@
 
   - include: roles/common/tasks/install-dcos.yml
     vars:
-      bootstrap: "{{ groups['dcos-bootstrap'][0] }}"
+      bootstrap: "{{ groups['dcos-bootstrap-' + zone][0] }}"
       dcos_block_size: 4
       dcos_mode: slave
 
@@ -83,12 +81,11 @@
 
   - name: start or restart DC/OS service
     uri:
-      url:    "http://{{ groups['dcos-master'][0] }}/marathon/v2/apps/mlb-external-{{ item }}"
+      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/{{ zone }}-mlb-external-{{ inventory_hostname }}"
       method: PUT
-      body:   "{{ lookup('file', '/tmp/mlb-' + item + '.json') }}"
+      body:   "{{ lookup('file', '/tmp/mlb-' + inventory_hostname + '.json') }}"
       body_format: json
       status_code: 200,201
-    with_items: "{{ instances }}"
 
   - name: remove json for marathon
     local_action:

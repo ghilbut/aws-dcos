@@ -122,7 +122,7 @@
 ###############################################################################
 
 [[inputs.kafka_consumer]]
-  brokers = {{ groups.kafka | map('append_text', ':9092') | list | to_json }}
+  brokers = {{ groups['kafka-' + zone] | map('append_text', ':9092') | list | to_json }}
   topics = ["telegraf-system-v1"]
   consumer_group = "influxdb-{{ inventory_hostname }}"
   offset = "oldest"
@@ -133,7 +133,7 @@
 
 
 [[inputs.kafka_consumer]]
-  brokers = {{ groups.kafka | map('append_text', ':9092') | list | to_json }}
+  brokers = {{ groups['kafka-' + zone] | map('append_text', ':9092') | list | to_json }}
   topics = ["telegraf-infra-v1"]
   consumer_group = "influxdb-{{ inventory_hostname }}"
   offset = "oldest"

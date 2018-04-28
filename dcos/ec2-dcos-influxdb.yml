@@ -4,44 +4,46 @@
   connection: local
   gather_facts: False
   vars:
-    inifile:    "{{ inventory_dir }}/files/aws.ini"
-    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
-    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
-    ec2_name:   ec2-dcos-influxdb-a
+    inifile:        "{{ inventory_dir }}/files/aws.ini"
+    access_key:     "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
+    secret_key:     "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
+    security_group: "{{ lookup('ini', 'private section=security_group file=' + inifile) }}"
+    subnet:         "{{ lookup('ini', 'mgmt_0 section=subnet file=' + inifile) }}"
+    ec2_name:       "ec2-{{ zone }}-dcos-influxdb"
+    instances:      "{{ groups['influxdb-' + zone] }}"
 
   tasks:
   - name: launch ec2 instance for influxdb
     ec2:
       aws_access_key: "{{ access_key }}"
       aws_secret_key: "{{ secret_key }}"
-      group_id:       sg-0bd58218cc97f58f1
-      image:          ami-995cf3f7
+      group_id:       "{{ security_group }}"
+      image:          "{{ aws.ami.centos }}"
       instance_tags:
-        Name:           ec2-dcos-influxdb-a
-        organization:   platform
-        owner:          ghilbut
+        Name:           "{{ ec2_name }}"
+        organization:   "{{ aws.organization }}"
+        owner:          "{{ aws.owner }}"
       instance_type:  i3.2xlarge
       key_name:       platform
       private_ip:     "{{ item }}"
-      region:         ap-northeast-2
+      region:         "{{ aws.region }}"
       volumes:
       - delete_on_termination: yes
         device_name: /dev/sda1
         name:        "{{ ec2_name }}"
         volume_size: 24
         volume_type: gp2
-      vpc_subnet_id: subnet-0640ab1e2c11dfe76
+      vpc_subnet_id: "{{ subnet }}"
       wait: yes
-    with_items: "{{ groups.influxdb }}"
+    with_items: "{{ instances }}"
 
   - name: remove host from ~/.ssh/known_hosts
     known_hosts: name={{ item }} state=absent
-    with_items: "{{ groups.influxdb }}"
-
+    with_items: "{{ groups['influxdb-' + zone] }}"
 
 
 - name: Wait running EC2 instances
-  hosts: influxdb
+  hosts: "influxdb-{{ zone }}"
   gather_facts: no
   become: yes
 

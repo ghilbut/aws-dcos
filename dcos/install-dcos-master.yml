@@ -1,6 +1,6 @@
 ---
 - name: Install DC/OS Master Agents
-  hosts: dcos-master
+  hosts: "dcos-master-{{ zone }}"
   gather_facts: no
   become: yes
 
@@ -23,7 +23,7 @@
 
   - include: roles/common/tasks/install-dcos.yml
     vars:
-      bootstrap: "{{ groups['dcos-bootstrap'][0] }}"
+      bootstrap: "bootstrap-{{ zone }}.dcos.in"
       dcos_block_size: 4
       dcos_mode: master
 

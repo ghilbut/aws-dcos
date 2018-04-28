@@ -1,6 +1,6 @@
 ---
 - name: Install HAProxy
-  hosts: haproxy
+  hosts: "haproxy-{{ zone }}"
   gather_facts: no
   roles:
   - dcos

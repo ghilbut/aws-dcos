@@ -1,6 +1,6 @@
 ---
 - name: Install Elasticsearch 6.x Coordinating Nodes
-  hosts: es6-coord
+  hosts: "es6-coord-{{ zone }}"
   gather_facts: no
   environment:
     JAVA_HOME: /usr/share/java

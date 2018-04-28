@@ -17,7 +17,7 @@
 # Global tags can be specified here in key="value" format.
 [global_tags]
   dc   = "{{ aws.region }}"
-  rack = "{{ aws.zone }}"
+  rack = "{{ aws.region + zone }}"
   # user = "$USER"
   role = "{{ telegraf_role }}"
 
@@ -85,7 +85,7 @@
 [[outputs.kafka]]
   # https://github.com/influxdata/telegraf/tree/1.6.1/plugins/outputs/kafka
 
-  brokers = {{ groups.kafka | map('append_text', ':9092') | list | to_json }}
+  brokers = {{ groups['kafka-' + zone] | map('append_text', ':9092') | list | to_json }}
   topic   = "telegraf-system-v1"
 
   compression_codec = 2
