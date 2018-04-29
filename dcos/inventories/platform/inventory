@@ -75,6 +75,7 @@ es6-master-c
 
 [es6-coord-c]
 10.0.1.10
+10.0.1.11
 
 [kibana-c:children]
 es6-coord-c

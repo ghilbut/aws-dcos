@@ -4,9 +4,8 @@
     aws_access_key: "{{ access_key }}"
     aws_secret_key: "{{ secret_key }}"
     region:         "{{ aws.region }}"
-    resource:       "{{ ec2.results.0.instances.0.block_device_mapping[volume].volume_id }}"
+    resource:       "{{ target.block_device_mapping[volume].volume_id }}"
     tags:
       Name:           "{{ volume_name }}"
       organization:   "{{ aws.organization }}"
       owner:          "{{ aws.owner }}"
-
