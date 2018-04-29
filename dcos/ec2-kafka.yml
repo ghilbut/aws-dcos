@@ -17,6 +17,7 @@
     ec2:
       aws_access_key: "{{ access_key }}"
       aws_secret_key: "{{ secret_key }}"
+      ebs_optimized:  yes
       group_id:       "{{ security_group }}"
       image:          "{{ aws.ami.centos }}"
       instance_tags:
@@ -37,16 +38,10 @@
     with_items: "{{ instances }}"
     register: ec2
 
-  - name: tagging to /dev/sda1
-    ec2_tag:
-      aws_access_key: "{{ access_key }}"
-      aws_secret_key: "{{ secret_key }}"
-      region:         "{{ aws.region }}"
-      resource:       "{{ ec2.results.0.instances.0.block_device_mapping['/dev/sda1'].volume_id }}"
-      tags:
-        Name:           "{{ ec2_name }}"
-        organization:   "{{ aws.organization }}"
-        owner:          "{{ aws.owner }}"
+  - include: roles/common/tasks/tagging-volume.yml
+    vars:
+      volume:      /dev/sda1
+      volume_name: "{{ ec2_name }}"
 
   - name: create and attach data volume
     ec2_vol:

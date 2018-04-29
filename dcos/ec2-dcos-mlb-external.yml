@@ -17,6 +17,7 @@
     ec2:
       aws_access_key: "{{ access_key }}"
       aws_secret_key: "{{ secret_key }}"
+      ebs_optimized:  yes
       group_id:       "{{ security_group }}"
       image:          "{{ aws.ami.centos }}"
       instance_tags:
@@ -30,12 +31,17 @@
       volumes:
       - delete_on_termination: yes
         device_name: /dev/sda1
-        name:        "{{ ec2_name }}"
         volume_size: 16
         volume_type: gp2
       vpc_subnet_id: "{{ subnet }}"
       wait: yes
     with_items: "{{ instances }}"
+    register: ec2
+
+  - include: roles/common/tasks/tagging-volume.yml
+    vars:
+      volume:      /dev/sda1
+      volume_name: "{{ ec2_name }}"
 
   - name: remove host from ~/.ssh/known_hosts
     known_hosts: name={{ item }} state=absent
