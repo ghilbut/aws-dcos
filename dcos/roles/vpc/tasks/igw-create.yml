@@ -7,9 +7,11 @@
     #tags:           "{{ igw_tags }}"
     vpc_id:         "{{ vpc_id }}"
   register: igw
+
 - name: save internet gateway ID to aws.ini file
   ini_file:
     dest:    "{{ inifile }}"
     section: network
     option:  igw
     value:   "{{ igw.gateway_id }}"
+  when: igw.changed

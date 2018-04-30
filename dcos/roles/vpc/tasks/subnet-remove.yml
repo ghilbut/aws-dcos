@@ -1,0 +1,18 @@
+---
+- name: "remove subnet - subnet-{{ item.suffix }}"
+  ec2_vpc_subnet:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    cidr:           "{{ item.cidr }}"
+    region:         "{{ region }}"
+    state:          absent
+    vpc_id:         "{{ vpc }}"
+  register: subnet
+
+- name: remove subnet ID from aws.ini file - subnet-{{ item.suffix }}"
+  ini_file:
+    dest:     "{{ inifile }}"
+    section:  subnets
+    option:   "subnet-{{ item.suffix }}"
+    state:    absent
+  when: subnet.changed

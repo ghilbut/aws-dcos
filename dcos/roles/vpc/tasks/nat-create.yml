@@ -8,12 +8,15 @@
     wait:           yes
     wait_timeout:   600
   register: nat
+
 - name: save NAT gateway ID to aws.ini file
   ini_file:
     dest:    "{{ inifile }}"
     section: network
     option:  "nat_{{ az }}"
     value:   "{{ nat.nat_gateway_id }}"
+  when: nat.changed
+
 # Ansible is not support making route table with Managed NAT Gateway.
 # So, I should save network interface ID to bind NAT to route table.
 - name: save NAT gateway network interface ID to aws.ini file
@@ -22,3 +25,4 @@
     section: network
     option:  "nat_{{ az }}_interface_id"
     value:   "{{ nat.nat_gateway_addresses[0].network_interface_id }}"
+  when: nat.changed

@@ -1,0 +1,19 @@
+---
+- name: "create subnet - subnet-{{ item.suffix }}"
+  ec2_vpc_subnet:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    az:             "{{ region + az }}"
+    cidr:           "{{ cidr }}"
+    region:         "{{ region }}"
+    tags:           "{{ subnet_tags }}"
+    vpc_id:         "{{ vpc_id }}"
+  register: subnet
+
+- name: save subnet IDs to aws.ini file - subnet-{{ item.suffix }}"
+  ini_file:
+    dest:     "{{ inifile }}"
+    section:  subnets
+    option:   "subnet-{{ item.suffix }}"
+    value:    "{{ subnet.subnet.id }}"
+  when: subnet.changed

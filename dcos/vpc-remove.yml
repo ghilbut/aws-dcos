@@ -1,0 +1,58 @@
+---
+- name: Remove VPC Network
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    inifile:    "{{ inventory_dir }}/files/aws.ini"
+    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
+    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
+    region:     "{{ aws.region }}"
+    role:       "{{ aws.role }}"
+    vpc:        "{{ lookup('ini', 'vpc section=network file=' + inifile) }}"
+
+  tasks:
+  - name: remove security groups
+    include: roles/vpc/tasks/security-group-remove.yml
+    with_items:
+    - openvpn
+    - private
+    - public
+    ignore_errors: yes
+
+  - name: remove private route table
+    vars:
+      inioption: "route_table_private_{{ item }}"
+    include: roles/vpc/tasks/route-table-remove.yml
+    with_items: "{{ aws.network.subnets.network | map(attribute='az') | list }}"
+    ignore_errors: yes
+
+  - name: remove public route table
+    vars:
+      inioption: route_table_public
+    include: roles/vpc/tasks/route-table-remove.yml
+    ignore_errors: yes
+
+  - name: remove NAT gateways
+    vars:
+      az:  "{{ item }}"
+      nat: "{{ lookup('ini', 'nat_' + az + ' section=network file=' + inifile) }}"
+    include: roles/vpc/tasks/nat-remove.yml
+    with_items: "{{ aws.network.subnets.network | map(attribute='az') | list }}"
+    ignore_errors: yes
+
+  - name: remove internet gateway
+    include: roles/vpc/tasks/igw-remove.yml
+    ignore_errors: yes
+
+  - name: remove subnets
+    include: roles/vpc/tasks/subnet-remove.yml
+    with_items: "{{ aws.network.subnets.mgmt + aws.network.subnets.kafka + aws.network.subnets.es6 + aws.network.subnets.network + aws.network.subnets.private + aws.network.subnets.public }}"
+    ignore_errors: yes
+
+  - name: remove virtual private clouds
+    vars:
+      cidr_block: "{{ aws.network.vpc.cidr }}"
+      name:       "vpc-{{ role }}"
+    include: roles/vpc/tasks/vpc-remove.yml
+    ignore_errors: yes

@@ -1,0 +1,128 @@
+---
+- name: Create VPC Network
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    inifile:    "{{ inventory_dir }}/files/aws.ini"
+    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
+    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
+    region:     "{{ aws.region }}"
+    role:       "{{ aws.role }}"
+    org:        "{{ aws.organization }}"
+    owner:      "{{ aws.owner }}"
+
+  tasks:
+  - name: create virtual private clouds
+    vars:
+      cidr_block:     "{{ aws.network.vpc.cidr }}"
+      vpc_tags:
+        Name:         "vpc-{{ role }}"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+    include: roles/vpc/tasks/vpc-create.yml
+
+  - name: set vpc_id as global variable
+    set_fact:
+      vpc_id: "{{ lookup('ini', 'vpc section=network file=' + inifile) }}"
+
+  - name: create subnets
+    vars:
+      az:             "{{ item.az }}"
+      cidr:           "{{ item.cidr }}"
+      subnet_tags:
+        Name:         "subnet-{{ role }}-{{ item.suffix }}"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+    include: roles/vpc/tasks/subnet-create.yml
+    with_items: "{{ aws.network.subnets.mgmt + aws.network.subnets.kafka + aws.network.subnets.es6 + aws.network.subnets.network + aws.network.subnets.private + aws.network.subnets.public }}"
+
+  - name: create internet gateway
+    vars:
+      igw_tags:
+        Name:         "igw-{{ role }}"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+    include: roles/vpc/tasks/igw-create.yml
+
+  - name: create NAT gateways
+    vars:
+      az:        "{{ item }}"
+      check:     "{{ lookup('ini', 'nat_' + az + '_interface_id section=network file=' + inifile) }}"
+      subnet_id: "{{ lookup('ini', 'subnet-network-' + az + ' section=subnets file=' + inifile) }}"
+    include: roles/vpc/tasks/nat-create.yml
+    when:       check|length == 0
+    with_items: "{{ aws.network.subnets.network | map(attribute='az') | list }}"
+
+  - name: create public route table
+    vars:
+      inioption:      route_table_public
+      routes:
+      - dest:         0.0.0.0/0
+        gateway_id:   "{{ lookup('ini', 'igw section=network file=' + inifile) }}"
+      route_tags:
+        Name:         "route-{{ role }}-public"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+      subnets:        "{{ (aws.network.subnets.network + aws.network.subnets.public) | map(attribute='cidr') | list }}"
+    include: roles/vpc/tasks/route-table-create.yml
+
+  - name: create private route tables
+    vars:
+      inioption:      "route_table_private_{{ item }}"
+      routes:
+      - dest:         0.0.0.0/0
+        interface_id: "{{ lookup('ini', 'nat_' + item  + '_interface_id section=network file=' + inifile) }}"
+      route_tags:
+        Name:         "route-{{ role }}-private-{{ item }}"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+      subnets:        "{{ (aws.network.subnets.mgmt + aws.network.subnets.kafka + aws.network.subnets.es6 + aws.network.subnets.private) | selectattr('az', 'equalto', item) | map(attribute='cidr') | list }}"
+    include: roles/vpc/tasks/route-table-create.yml
+    with_items: "{{ aws.network.subnets.network | map(attribute='az') | list }}"
+
+  - name: create security groups
+    vars:
+      desc:           "{{ item.description }}"
+      name:           "{{ role }}-{{ item.suffix }}"
+      rules:          "{{ item.rules }}"
+      sg_tags:
+        Name:         "sg-{{ name }}"
+        organization: "{{ org }}"
+        owner:        "{{ owner }}"
+    include: roles/vpc/tasks/security-group-create.yml
+    with_items:
+    - suffix:      openvpn
+      # https://docs.openvpn.net/frequently-asked-questions/
+      rules:
+      - proto:     tcp
+        from_port: 22
+        to_port:   22
+        cidr_ip:   0.0.0.0/0
+      - proto:     tcp
+        from_port: 443
+        to_port:   443
+        cidr_ip:   0.0.0.0/0
+      - proto:     tcp
+        from_port: 943
+        to_port:   943
+        cidr_ip:   0.0.0.0/0
+      - proto:     udp
+        from_port: 1194
+        to_port:   1194
+        cidr_ip:   0.0.0.0/0
+      description: "openvpn SecurityGroup for EC2 instances"
+    - suffix:      private
+      rules:
+      - proto:     all
+        from_port: all
+        to_port:   all
+        cidr_ip:   "{{ aws.network.vpc.cidr }}"
+      description: "defualt private SecurityGroup for EC2 instances"
+    - suffix:      public
+      rules:
+      - proto:     all
+        from_port: all
+        to_port:   all
+        cidr_ip:   0.0.0.0/0
+      description: "defualt public SecurityGroup for EC2 instances"
