@@ -51,6 +51,41 @@ aws:
       - az:     c
         cidr:   10.0.255.0/24
         suffix: public-255c
+    security_groups:
+    - suffix:      openvpn
+      # https://docs.openvpn.net/frequently-asked-questions/
+      rules:
+      - proto:     tcp
+        from_port: 22
+        to_port:   22
+        cidr_ip:   0.0.0.0/0
+      - proto:     tcp
+        from_port: 443
+        to_port:   443
+        cidr_ip:   0.0.0.0/0
+      - proto:     tcp
+        from_port: 943
+        to_port:   943
+        cidr_ip:   0.0.0.0/0
+      - proto:     udp
+        from_port: 1194
+        to_port:   1194
+        cidr_ip:   0.0.0.0/0
+      description: "openvpn SecurityGroup for EC2 instances"
+    - suffix:      private
+      rules:
+      - proto:     all
+        from_port: all
+        to_port:   all
+        cidr_ip:   10.0.0.0/16
+      description: "defualt private SecurityGroup for EC2 instances"
+    - suffix:      public
+      rules:
+      - proto:     all
+        from_port: all
+        to_port:   all
+        cidr_ip:   0.0.0.0/0
+      description: "defualt public SecurityGroup for EC2 instances"
   ec2:
     ssh_key: platform.pem
   ami:

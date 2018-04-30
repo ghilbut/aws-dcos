@@ -33,7 +33,7 @@
     known_hosts:
       name:  "{{ item }}"
       state: absent
-    with_items: "{{ groups['vpc-' + zone] }}"
+    with_items: "{{ groups['vpn-' + zone] }}"
     ignore_errors: yes
 
   - name: remove ec2 instance ID from aws.ini file

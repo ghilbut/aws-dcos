@@ -7,10 +7,10 @@ def subnet_name(item, aws):
     {{ "ip" | subnet_name(aws) }}
     -> subnet_name
   """
-  for name, subnets in aws.network.subnets.iteritems():
+  for name, subnets in aws['network']['subnets'].iteritems():
     for subnet in subnets:
-      if IPAddress(item) in IPNetwork(subnet.cidr):
-        return 'subnet-' + subnet.suffix
+      if IPAddress(item) in IPNetwork(subnet['cidr']):
+        return 'subnet-' + subnet['suffix']
   return None
  
 class FilterModule(object):

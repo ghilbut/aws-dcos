@@ -1,5 +1,5 @@
 ---
-- name: create NAT gateway and allocate EIP
+- name: "create NAT gateway and allocate EIP - nat-{{ role }}-{{ az }}"
   ec2_vpc_nat_gateway:
     aws_access_key: "{{ access_key }}"
     aws_secret_key: "{{ secret_key }}"
@@ -9,7 +9,19 @@
     wait_timeout:   600
   register: nat
 
-- name: save NAT gateway ID to aws.ini file
+- name: "tagging to NAT gateway - nat-{{ role }}-{{ az }}"
+  ec2_tag:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    region:         "{{ aws.region }}"
+    resource:       "{{ nat.nat_gateway_id }}"
+    tags:
+      Name:           "nat-{{ role }}-{{ az }}"
+      organization:   "{{ aws.organization }}"
+      owner:          "{{ aws.owner }}"
+  when: nat.changed
+
+- name: "save NAT gateway ID to aws.ini file - nat-{{ role }}-{{ az }}"
   ini_file:
     dest:    "{{ inifile }}"
     section: network
@@ -19,7 +31,7 @@
 
 # Ansible is not support making route table with Managed NAT Gateway.
 # So, I should save network interface ID to bind NAT to route table.
-- name: save NAT gateway network interface ID to aws.ini file
+- name: "save NAT gateway network interface ID to aws.ini file - nat-{{ role }}-{{ az }}"
   ini_file:
     dest:    "{{ inifile }}"
     section: network

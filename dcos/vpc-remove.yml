@@ -14,10 +14,7 @@
   tasks:
   - name: remove security groups
     include: roles/vpc/tasks/security-group-remove.yml
-    with_items:
-    - openvpn
-    - private
-    - public
+    with_items: "{{ aws.network.security_groups }}"
     ignore_errors: yes
 
   - name: remove private route table

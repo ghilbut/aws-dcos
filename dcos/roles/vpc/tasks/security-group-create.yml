@@ -1,5 +1,5 @@
 ---
-- name: create security group
+- name: "create security group - sg-{{ name }}"
   ec2_group:
     aws_access_key: "{{ access_key }}"
     aws_secret_key: "{{ secret_key }}"
@@ -7,5 +7,25 @@
     name:           "{{ name }}"
     region:         "{{ region }}"
     rules:          "{{ item.rules }}"
-    #tags:           "{{ sg_tags }}"
     vpc_id:         "{{ vpc_id }}"
+  register: sg
+
+- name: "tagging to security group - sg-{{ name }}"
+  ec2_tag:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    region:         "{{ aws.region }}"
+    resource:       "{{ sg.group_id }}"
+    tags:
+      Name:           "sg-{{ name }}"
+      organization:   "{{ aws.organization }}"
+      owner:          "{{ aws.owner }}"
+  when: sg.changed
+
+- name: "save security group IDs to aws.ini file - sg-{{ name }}"
+  ini_file:
+    dest:     "{{ inifile }}"
+    section:  security_groups
+    option:   "sg-{{ name }}"
+    value:    "{{ sg.group_id }}"
+  when: sg.changed
