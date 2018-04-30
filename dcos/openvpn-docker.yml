@@ -4,7 +4,6 @@
   connection: local
   gather_facts: no
   vars:
-    ansible_ssh_private_key_file: "files/{{ aws.ec2.key_name }}.pem"
     ansible_python_interpreter:   /usr/bin/python3
     inifile:     "{{ inventory_dir }}/files/aws.ini"
     public_ip:   "{{ lookup('ini', 'public_ip_' + zone + ' section=openvpn file=' + inifile) }}"
