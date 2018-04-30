@@ -9,9 +9,11 @@
     tags:           "{{ route_tags }}"
     vpc_id:         "{{ vpc_id }}"
   register: route
+
 - name: save public route table ID to aws.ini
   ini_file:
     dest:    "{{ inifile }}"
     section: network
     option:  "{{ inioption }}"
     value:   "{{ route.route_table.id }}"
+  when: route.changed

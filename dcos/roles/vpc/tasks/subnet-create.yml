@@ -10,7 +10,7 @@
     vpc_id:         "{{ vpc_id }}"
   register: subnet
 
-- name: save subnet IDs to aws.ini file - subnet-{{ item.suffix }}"
+- name: "save subnet IDs to aws.ini file - subnet-{{ item.suffix }}"
   ini_file:
     dest:     "{{ inifile }}"
     section:  subnets

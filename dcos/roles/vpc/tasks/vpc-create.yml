@@ -4,10 +4,11 @@
     aws_access_key: "{{ access_key }}"
     aws_secret_key: "{{ secret_key }}"
     cidr_block:     "{{ cidr_block }}"
-    name:           "{{vpc_tags.Name }}"
+    name:           "{{ vpc_tags.Name }}"
     region:         "{{ region }}"
     tags:           "{{ vpc_tags }}"
   register: vpc
+
 - name: save VPC ID to aws.ini file
   ini_file:
     dest:    "{{ inifile }}"

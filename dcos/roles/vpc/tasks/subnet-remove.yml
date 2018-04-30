@@ -9,7 +9,7 @@
     vpc_id:         "{{ vpc }}"
   register: subnet
 
-- name: remove subnet ID from aws.ini file - subnet-{{ item.suffix }}"
+- name: "remove subnet ID from aws.ini file - subnet-{{ item.suffix }}"
   ini_file:
     dest:     "{{ inifile }}"
     section:  subnets

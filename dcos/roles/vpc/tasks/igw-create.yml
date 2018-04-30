@@ -1,14 +1,25 @@
 ---
-- name: create internet gateway
+- name: "create internet gateway - igw-{{ role }}"
   ec2_vpc_igw:
     aws_access_key: "{{ access_key }}"
     aws_secret_key: "{{ secret_key }}"
     region:         "{{ region }}"
-    #tags:           "{{ igw_tags }}"
     vpc_id:         "{{ vpc_id }}"
   register: igw
 
-- name: save internet gateway ID to aws.ini file
+- name: "tagging to internet gateway - igw-{{ role }}"
+  ec2_tag:
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    region:         "{{ aws.region }}"
+    resource:       "{{ igw.gateway_id }}"
+    tags:
+      Name:           "igw-{{ role }}"
+      organization:   "{{ aws.organization }}"
+      owner:          "{{ aws.owner }}"
+  when: igw.changed
+
+- name: "save internet gateway ID to aws.ini file - igw-{{ role }}"
   ini_file:
     dest:    "{{ inifile }}"
     section: network
