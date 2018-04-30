@@ -76,3 +76,9 @@ $ tar -vxzf 1.4.5.tar.gz
 $ cd boto3-1.4.5/
 $ sudo python setup.py install
 ```
+
+## Install netaddr 0.7.19
+
+```bash
+$ pip install netaddr
+```
