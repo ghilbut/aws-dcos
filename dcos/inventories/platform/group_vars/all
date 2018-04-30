@@ -51,5 +51,7 @@ aws:
       - az:     c
         cidr:   10.0.255.0/24
         suffix: public-255c
+  ec2:
+    ssh_key: platform.pem
   ami:
     centos: ami-995cf3f7

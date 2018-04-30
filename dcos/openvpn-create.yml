@@ -8,8 +8,8 @@
     access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
     secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
     region:     "{{ aws.region }}"
-    org:        "{{ aws.tags.organization }}"
-    owner:      "{{ aws.tags.owner }}"
+    org:        "{{ aws.organization }}"
+    owner:      "{{ aws.owner }}"
     amis:
       # Ubuntu Server 16.04 LTS (HVM), SSD Volume Type
       #ap-northeast-1: 
@@ -27,28 +27,26 @@
       #us-west-1:      
       #us-west-2:      
     ebs_optimized: "{% if type.startswith('t') %} yes {% else %} no {% endif %}"
-    suffix: "{{ zone }}"
-    zones:  "{{ aws.network.subnets.network | map(attribute='az') | list }}"
 
   tasks:
   - name: create ec2 instance
     vars:
-      name: "ec2-{{ role }}-openvpn-{{ suffix }}"
+      name: "ec2-{{ zone }}-openvpn"
       type: t2.micro
     ec2:
       assign_public_ip: yes
       aws_access_key: "{{ access_key }}"
       aws_secret_key: "{{ secret_key }}"
       ebs_optimized:  "{{ ebs_optimized|bool }}"
-      group:          "{{ role }}-openvpn"
+      group:          "{{ aws.role }}-openvpn"
       image:          "{{ amis[region] }}"
       instance_tags: 
         Name:         "{{ name }}"
         organization: "{{ org }}"
         owner:        "{{ owner }}"
       instance_type:  "{{ type }}"
-      key_name:       "{{ aws.ec2.key_name }}"
-      private_ip:     "{{ groups['VPN'][zones.index(zone)] }}"
+      key_name:       platform
+      private_ip:     "{{ groups['vpn-' + zone][0] }}"
       region:         "{{ region }}"
       source_dest_check: no
       user_data: |
@@ -63,7 +61,7 @@
         name: "{{ name }}"
         volume_size: 8
         volume_type: gp2
-      vpc_subnet_id: "{{ lookup('ini', 'subnet_network_' + suffix + ' section=network file=' + inifile) }}"
+      vpc_subnet_id: "{{ lookup('ini', 'subnet-network-' + zone + ' section=subnets file=' + inifile) }}"
       wait: yes
     register: ec2
 
@@ -71,13 +69,13 @@
     ini_file:
       dest:    "{{ inifile }}"
       section: openvpn
-      option:  "ec2_instance_{{ suffix }}"
+      option:  "ec2_instance_{{ zone }}"
       value:   "{{ ec2.instances[0].id }}"
   - name: save openvpn public_ip to aws.ini
     ini_file:
       dest:    "{{ inifile }}"
       section: openvpn
-      option:  "public_ip_{{ suffix }}"
+      option:  "public_ip_{{ zone }}"
       value:   "{{ ec2.instances[0].public_ip }}"
 
   - name: remove host from ~/.ssh/known_hosts
