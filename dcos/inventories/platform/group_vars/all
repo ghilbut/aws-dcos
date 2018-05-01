@@ -78,6 +78,14 @@ aws:
         from_port: all
         to_port:   all
         cidr_ip:   10.0.0.0/16
+      - proto:     all
+        from_port: all
+        to_port:   all
+        cidr_ip:   172.16.0.0/12
+      - proto:     all
+        from_port: all
+        to_port:   all
+        cidr_ip:   192.168.0.0/16
       description: "defualt private SecurityGroup for EC2 instances"
     - suffix:      public
       rules:
