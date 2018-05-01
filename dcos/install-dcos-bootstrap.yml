@@ -23,7 +23,7 @@
 
   - name: copy ssh key
     copy:
-      src:  files/platform.pem
+      src:  "{{ inventory_dir }}/files/platform.pem"
       dest: /home/centos/dcos/bootstrap/genconf/ssh_key
 
   - name: copy ip-detect
