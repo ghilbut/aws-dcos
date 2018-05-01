@@ -173,7 +173,7 @@
   # no configuration
 
 
-{% if docker_installed | bool %}
+{% if docker_installed %}
 # Collects conntrack stats from the configured directories and files.
 [[inputs.conntrack]]
    ## The following defaults would work with multiple versions of conntrack.
