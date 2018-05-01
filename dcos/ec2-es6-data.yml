@@ -4,21 +4,23 @@
   connection: local
   gather_facts: False
   vars:
-    inifile:        "{{ inventory_dir }}/files/aws.ini"
-    access_key:     "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
-    secret_key:     "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
-    security_group: "{{ lookup('ini', 'private section=security_group file=' + inifile) }}"
-    subnet:         "{{ lookup('ini', 'mgmt_' + zone + ' section=subnet file=' + inifile) }}"
+    inifile:    "{{ inventory_dir }}/files/aws.ini"
+    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
+    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
     ec2_name:   "ec2-{{ zone }}-es6-data"
     instances:  "{{ groups['es6-data-' + zone] }}"
 
   tasks:
   - name: launch ec2 instance for elasticsearch 6.x data nodes
+    vars:
+      subnet_name: "{{ item | subnet_name(aws) }}"
+      subnet_id:   "{{ lookup('ini', subnet_name + ' section=subnets file=' + inifile) }}"
     ec2:
       aws_access_key: "{{ access_key }}"
       aws_secret_key: "{{ secret_key }}"
       ebs_optimized:  yes
-      group_id:       "{{ security_group }}"
+      group_id:
+      - "{{ lookup('ini', 'sg-' + aws.role + '-private section=security_groups file=' + inifile) }}"
       image:          "{{ aws.ami.centos }}"
       instance_tags:
         Name:           "{{ ec2_name }}"
@@ -33,7 +35,7 @@
         device_name: /dev/sda1
         volume_size: 24
         volume_type: gp2
-      vpc_subnet_id: "{{ subnet }}"
+      vpc_subnet_id: "{{ subnet_id }}"
       wait: yes
     with_items: "{{ instances }}"
     register: ec2
