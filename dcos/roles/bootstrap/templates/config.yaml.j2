@@ -1,4 +1,4 @@
-bootstrap_url: http://bootstrap-{{ zone }}.dcos.in
+bootstrap_url: http://{{ groups['dcos-bootstrap-' + zone][0] }}
 cluster_name:  {{ dcos.cluster_name + ' - ' + zone|upper }}
 exhibitor_storage_backend: static
 master_discovery: static
