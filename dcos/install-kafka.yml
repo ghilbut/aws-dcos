@@ -95,3 +95,15 @@
       enabled: yes
       name:    kafka
       state:   started
+
+  - name: create topics
+    vars:
+      zk: "{{ groups['dcos-master-' + zone][0] }}:2181/kafka/default"
+      replications: "{{ [ groups['kafka-' + zone] | length , 3 ] | min }}"
+    shell: "/usr/share/kafka/bin/kafka-topics.sh --create --partitions 2 --replication-factor {{ replications }} --topic {{ item }} --zookeeper {{ zk }}"
+    with_items:
+    - telegraf-system-v1
+    - telegraf-infra-v1
+    - filebeat-dcos-v1
+    ignore_errors: yes
+    run_once: yes
