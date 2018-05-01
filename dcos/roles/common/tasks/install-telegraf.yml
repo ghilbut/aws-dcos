@@ -27,7 +27,7 @@
   when: not backup.stat.exists
 - name: copy config
   vars:
-    docker_installed: docker_path.stat.exists
+    docker_installed: "{{ docker_path.stat.exists }}"
   template:
     src:  roles/common/templates/telegraf.conf.j2
     dest: /etc/telegraf/telegraf.conf
