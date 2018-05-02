@@ -1,0 +1,69 @@
+{
+  "id": "{{ zone }}-jenkins",
+  "instances": 1,
+  "cpus": 2,
+  "mem": 4096,
+  "constraints": [
+    [
+      "hostname",
+      "LIKE",
+      "{{ inventory_hostname }}"
+    ]
+  ],
+  "container": {
+    "docker": {
+      "forcePullImage": true,
+      "image": "jenkins/jenkins:lts-alpine",
+      "network": "BRIDGE",
+      "parameters": [
+        {
+          "key": "memory-swap",
+          "value": "0b"
+        },
+        {
+          "key": "oom-kill-disable",
+          "value": "true"
+        }
+      ],
+      "portMappings": [
+        {
+          "name": "http",
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        },
+        {
+          "name": "slaves",
+          "containerPort": 50000,
+          "hostPort": 50000,
+          "protocol": "tcp"
+        }
+      ],
+      "privileged": false
+    },
+    "type": "DOCKER",
+    "volumes": [
+      {
+        "containerPath": "/var/jenkins_home",
+        "hostPath": "/var/lib/jenkins",
+        "mode": "RW"
+      },
+      {
+        "containerPath": "/var/log/jenkins",
+        "hostPath": "/var/log/jenkins",
+        "mode": "RW"
+      }
+    ]
+  },
+  "maxLaunchDelaySeconds": 60,
+  "labels": {
+    "HAPROXY_GROUP": "external",
+    "HAPROXY_0_ENABLED": "true",
+    "HAPROXY_0_VHOST": "jenkins.whalex.net"
+  },
+  "upgradeStrategy": {
+    "maximumOverCapacity": 0,
+    "minimumHealthCapacity": 0
+  },
+  "taskKillGracePeriodSeconds": 30
+}

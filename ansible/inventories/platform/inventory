@@ -103,6 +103,13 @@ es6-coord-c
 10.0.0.11
 
 
+[jenkins-master-c]
+10.0.1.10
+
+[jenkins-agent-c]
+10.0.1.11
+
+
 
 ######## DC/OS ########
 
