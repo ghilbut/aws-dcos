@@ -21,11 +21,11 @@
 ######## Kibana ########
 
 [kafka-a]
-10.0.0.100
+10.0.2.10
 
 
 [kafka-c]
-10.0.1.[100:104]
+10.0.3.[10:14]
 
 
 
@@ -55,7 +55,7 @@ influxdb-c
 ######## Elasticsearch ########
 
 [es6-master-a]
-10.0.0.150
+10.0.4.100
 
 [es6-data-a:children]
 es6-master-a
@@ -64,7 +64,7 @@ es6-master-a
 es6-master-a
 
 [es6-coord-a]
-10.0.0.10
+10.0.4.10
 
 [kibana-a:children]
 es6-coord-a
@@ -74,7 +74,7 @@ es6-coord-a
 
 
 [es6-master-c]
-10.0.1.[150:154]
+10.0.5.[100:104]
 
 [es6-data-c:children]
 es6-master-c
@@ -83,8 +83,8 @@ es6-master-c
 es6-master-c
 
 [es6-coord-c]
-10.0.1.10
-10.0.1.11
+10.0.5.10
+10.0.5.11
 
 [kibana-c:children]
 es6-coord-c
@@ -96,11 +96,11 @@ es6-coord-c
 
 ######## Jenkins ########
 
-[jenkins-master]
-10.0.0.200
+[jenkins-master-a]
+10.0.0.10
 
-[jenkins-agent]
-10.0.0.201
+[jenkins-agent-a]
+10.0.0.11
 
 
 
