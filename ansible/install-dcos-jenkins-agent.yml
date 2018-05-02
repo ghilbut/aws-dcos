@@ -1,12 +1,14 @@
 ---
-- name: Install Jenkins Master
-  hosts: "jenkins-master-{{ zone }}"
+- name: Install Jenkins Agent
+  hosts: "jenkins-agent-{{ zone }}"
   gather_facts: no
   roles:
   - dcos
   become: yes
 
   tasks:
+  - include: roles/common/tasks/install-java8.yml
+
   - include: roles/common/tasks/install-docker.yml
     vars:
       docker_block_size: 64
@@ -28,7 +30,7 @@
       - dcos
       - slave
       - jenkins
-      - jenkins-master
+      - jenkins-agent
 
 
   - stat: path=/var/lib/jenkins
@@ -61,33 +63,9 @@
     - log
 
 
-  - name: create deploy json
-    local_action:
-      module: template
-      src:  roles/jenkins/templates/dcos-jenkins.json.j2
-      dest: "/tmp/dcos-jenkins.json"
-    run_once: yes
-    become: no
-
-  - name: start or restart DC/OS service
-    uri:
-      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/{{ zone }}-jenkins"
-      method: PUT
-      body:   "{{ lookup('file', '/tmp/dcos-jenkins.json') }}"
-      body_format: json
-      status_code: 200,201
-
-  - name: remove deploy json
-    local_action:
-      module: file
-      path:  "/tmp/dcos-jenkins.json"
-      state: absent
-    become: no
-
-
   - name: change resource rules
     copy:
-      src:  roles/jenkins/files/mesos-resources.master
+      src:  roles/jenkins/files/mesos-resources.agent
       dest: /var/lib/dcos/mesos-resources
 
   - name: remove mesos metadata
