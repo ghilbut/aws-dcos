@@ -94,6 +94,16 @@ es6-coord-c
 
 
 
+######## Jenkins ########
+
+[jenkins-master]
+10.0.0.200
+
+[jenkins-agent]
+10.0.0.201
+
+
+
 ######## DC/OS ########
 
 [dcos-bootstrap-a]

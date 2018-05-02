@@ -15,19 +15,19 @@
   when: not backup.stat.exists
 - name: copy filebeat config
   template:
-    src:  roles/common/templates/filebeat.yml.j2
+    src:  roles/dcos/templates/filebeat.yml.j2
     dest: /etc/filebeat/filebeat.yml
 - name: check validation
   shell: /usr/bin/filebeat test config -c /etc/filebeat/filebeat.yml
 
 - name: copy dcos-journal-filebeat service file
   copy:
-    src:  roles/common/files/dcos-journalctl-filebeat.service
+    src:  roles/dcos/files/dcos-journalctl-filebeat.service
     dest: /usr/lib/systemd/system/dcos-journalctl-filebeat.service
 
 - name: copy logrotate file
   copy:
-    src:  roles/common/files/dcos-journalctl-filebeat.logrotate
+    src:  roles/dcos/files/dcos-journalctl-filebeat.logrotate
     dest: /etc/logrotate.d/dcos-filebeat
 
 - name: create file log directory

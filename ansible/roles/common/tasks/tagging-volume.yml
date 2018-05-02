@@ -1,8 +1,8 @@
 ---
 - name: "tagging to volume - {{ volume }}"
   ec2_tag:
-    aws_access_key: "{{ access_key }}"
-    aws_secret_key: "{{ secret_key }}"
+    aws_access_key: "{{ aws.access_key }}"
+    aws_secret_key: "{{ aws.secret_key }}"
     region:         "{{ aws.region }}"
     resource:       "{{ target.block_device_mapping[volume].volume_id }}"
     tags:

@@ -4,23 +4,20 @@
   connection: local
   gather_facts: False
   vars:
-    inifile:    "{{ inventory_dir }}/files/aws.ini"
-    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifile) }}"
-    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifile) }}"
-    ec2_name:   "ec2-{{ zone }}-es6-data"
-    instances:  "{{ groups['es6-data-' + zone] }}"
+    ec2_name:  "ec2-{{ zone }}-es6-data"
+    instances: "{{ groups['es6-data-' + zone] }}"
 
   tasks:
   - name: launch ec2 instance for elasticsearch 6.x data nodes
     vars:
       subnet_name: "{{ item | subnet_name(aws) }}"
-      subnet_id:   "{{ lookup('ini', subnet_name + ' section=subnets file=' + inifile) }}"
+      subnet_id:   "{{ lookup('ini', subnet_name + ' section=subnets file=' + inifiles.aws) }}"
     ec2:
-      aws_access_key: "{{ access_key }}"
-      aws_secret_key: "{{ secret_key }}"
+      aws_access_key: "{{ aws.access_key }}"
+      aws_secret_key: "{{ aws.secret_key }}"
       ebs_optimized:  yes
       group_id:
-      - "{{ lookup('ini', 'sg-' + aws.role + '-private section=security_groups file=' + inifile) }}"
+      - "{{ lookup('ini', 'sg-' + aws.role + '-private section=security_groups file=' + inifiles.aws) }}"
       image:          "{{ aws.ami.centos }}"
       instance_tags:
         Name:           "{{ ec2_name }}"

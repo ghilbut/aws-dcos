@@ -15,13 +15,13 @@
     vars:
       telegraf_role: dcos-slave
 
-  - include: roles/common/tasks/install-dcos.yml
+  - include: roles/dcos/tasks/install-dcos.yml
     vars:
       bootstrap: "{{ groups['dcos-bootstrap-' + zone][0] }}"
       dcos_block_size: 4
       dcos_mode: slave
 
-  - include: roles/common/tasks/install-dcos-filebeat.yml
+  - include: roles/dcos/tasks/install-dcos-filebeat.yml
     vars:
       beat_tags:
       - dcos

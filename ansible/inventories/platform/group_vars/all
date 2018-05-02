@@ -1,5 +1,9 @@
 ---
+inifiles:
+  aws: "{{ inventory_dir }}/files/aws.ini"
 aws:
+  access_key:   "{{ lookup('ini', 'access_key section=credential file=' + inifiles.aws) }}"
+  secret_key:   "{{ lookup('ini', 'secret_key section=credential file=' + inifiles.aws) }}"
   region:       ap-northeast-2
   role:         platform
   organization: platform

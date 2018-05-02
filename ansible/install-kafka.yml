@@ -96,6 +96,9 @@
       name:    kafka
       state:   started
 
+  - pause:
+      seconds: 10
+
   - name: create topics
     vars:
       zk: "{{ groups['dcos-master-' + zone][0] }}:2181/kafka/default"
