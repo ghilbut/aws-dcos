@@ -4,7 +4,7 @@
   connection: local
   gather_facts: False
   vars:
-    ec2_name:  "ec2-{{ zone }}-jenkins-master"
+    ec2_name:  "ec2-{{ zone }}-dcos-jenkins-master"
     instances: "{{ groups['jenkins-master-' + zone] }}"
 
   tasks:
