@@ -20,13 +20,6 @@ aws:
       - az:     c
         cidr:   10.0.1.0/24
         suffix: mgmt-1c
-      kafka:
-      - az:     a
-        cidr:   10.0.2.0/24
-        suffix: kafka-2a
-      - az:     c
-        cidr:   10.0.3.0/24
-        suffix: kafka-3c
       es6:
       - az:     a
         cidr:   10.0.4.0/24
@@ -34,6 +27,13 @@ aws:
       - az:     c
         cidr:   10.0.5.0/24
         suffix: es6-5c
+      kafka:
+      - az:     a
+        cidr:   10.0.6.0/24
+        suffix: kafka-6a
+      - az:     c
+        cidr:   10.0.7.0/24
+        suffix: kafka-7c
       network:
       - az:     a
         cidr:   10.0.8.0/24
