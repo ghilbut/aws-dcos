@@ -12,7 +12,7 @@ mynode              0.1                 bd3e4427c2f1        9 minutes ago       
 node                8.11.1-slim         6549ea3fb839        10 days ago         231MB
 ```
 
-# B. Run docker instance
+# B. Run docker instance and check status
 
 **node**라는 이름으로 인스턴스를 생성한다.  
 서버 포트는 로컬 머신의 3000번으로 연결된다.
@@ -25,8 +25,6 @@ ON SIGTERM
 # after execute "docker stop node"
 ON SIGTERM
 ```
-
-# C. Check docker status and change health check response
 
 docker 인스턴스의 상태를 확인하고 curl을 이용하여 request가 정상적으로 서빙 되는지 테스트한다.  
 health check 상태를 같이 확인하다.
@@ -80,7 +78,9 @@ $ curl -v http://localhost:3000/health
 ok
 ```
 
-## send SIGTERM signal
+# C. Check health check status changed
+
+## C-1. send SIGTERM signal
 
 docker 인스턴스에 SIGTERM signal을 발생시킨 후 curl을 통해 health check 상태 변화를 확인한다.
 
@@ -111,7 +111,7 @@ $ curl -v http://localhost:3000/health
 shutting down
 ```
 
-## stop docker
+## C-2. stop docker
 
 docker stop 명령을 내리면 docker 인스턴스에 SIGTERM 시그널이 발생한 후  
 일정시간 뒤에 SIGKILL이 발생하면서 프로세스가 종료된다.
