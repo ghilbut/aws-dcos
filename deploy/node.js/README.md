@@ -18,8 +18,6 @@ node                8.11.1-slim         6549ea3fb839        10 days ago         
 서버 포트는 로컬 머신의 3000번으로 연결된다.
 
 ```bash
-$ cd /path/to/aws-dcos/deploy/node.js
-
 $ docker run -it -p 3000:3000 --rm --name node mynode:0.1
 server is listening on 3000
 # after execute "docker kill --signal="SIGTERM" node"
