@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "express": "^4.16.3"
+  },
+  "main":    "index.js",
+  "name":    "mynode",
+  "private": true,
+  "version": "0.0.1"
+}
