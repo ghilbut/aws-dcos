@@ -22,16 +22,6 @@ $ cd git-lfs-2.2.1
 $ sudo ./install.sh
 ```
 
-### Manage large file types
-```bash
-$ cd /project/dir
-$ git lfs install
-$ git lfs track "*.tar.bz"
-$ git lfs track "*.tgz"
-$ git lfs track "*.zip"
-$ git add .gitattributes
-```
-
 # Ubuntu 16.04 LTS
 
 ## Install python 2.7
