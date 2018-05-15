@@ -1,4 +1,4 @@
-# build docker image with source code
+# A. Build docker image with source code
 
 **mynode:0.1**이라는 이름으로 docker 이미지를 생성한다.
 
@@ -12,7 +12,7 @@ mynode              0.1                 bd3e4427c2f1        9 minutes ago       
 node                8.11.1-slim         6549ea3fb839        10 days ago         231MB
 ```
 
-# run docker instance
+# B. Run docker instance
 
 **node**라는 이름으로 인스턴스를 생성한다.  
 서버 포트는 로컬 머신의 3000번으로 연결된다.
@@ -26,7 +26,7 @@ ON SIGTERM
 ON SIGTERM
 ```
 
-# check docker status and change health check response
+# C. Check docker status and change health check response
 
 docker 인스턴스의 상태를 확인하고 curl을 이용하여 request가 정상적으로 서빙 되는지 테스트한다.  
 health check 상태를 같이 확인하다.
