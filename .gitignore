@@ -104,6 +104,7 @@ ENV/
 
 # ghilbut
 .DS_Store
+.venv
 *.ini
 *.pem
 *.retry
