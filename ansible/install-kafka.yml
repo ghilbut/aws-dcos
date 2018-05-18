@@ -31,7 +31,7 @@
       src:  roles/kafka/files/kafka_2.12-1.1.0.tgz
       dest: /opt
     when: not kafka_path.stat.exists
-  - name:
+  - name: create kafka symbolic link
     file:
       src:   /opt/kafka_2.12-1.1.0
       dest:  /opt/kafka
