@@ -1,43 +1,43 @@
 ---
 - name: Install Telegraf Kafka Consumers
-  hosts: "telegraf-{{ zone }}"
+  hosts: "dcos-bootstrap-{{ zone }}"
   gather_facts: no
-  become: yes
+  vars:
+    targets: "{{ groups['influxdb-' + zone] }}"
 
   tasks:
-  - name: make directory
-    file:
-      path:  /home/telegraf/conf
+  - file:
+      path:  /home/centos/dcos/htdocs/fetch/telegraf-consumer-{{ item }}
       state: directory
+    with_items: "{{ targets }}"
 
-  - name: make directory
-    file:
-      path:  /home/telegraf/consumer/conf
-      state: directory
-  - name: set telegraf kafka consumers
+  - name: create telegraf kafka consumer configuration
     template:
       src:  roles/telegraf-consumer/templates/telegraf.conf.j2
-      dest: /home/telegraf/consumer/conf/telegraf.conf
-    register: telegraf
+      dest: "/home/centos/dcos/htdocs/fetch/telegraf-consumer-{{ item }}/telegraf.conf"
+    with_items: "{{ targets }}"
+
 
   - name: make DC/OS deploy json
     local_action:
       module: template
       src:    roles/telegraf-consumer/templates/dcos-telegraf.json.j2
-      dest:   "/tmp/telegraf-consumer-{{ inventory_hostname }}.json"
-    become: no
+      dest:   "/tmp/telegraf-consumer-{{ item }}.json"
+    with_items: "{{ targets }}"
 
   - name: start or restart DC/OS service
     uri:
-      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/telegraf-consumer-{{ inventory_hostname }}"
+      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/telegraf-consumer-{{ item }}"
       method: PUT
-      body:   "{{ lookup('file', '/tmp/telegraf-consumer-' + inventory_hostname + '.json') }}"
+      body:   "{{ lookup('file', '/tmp/telegraf-consumer-' + item + '.json') }}"
       body_format: json
       status_code: 200,201
+    with_items: "{{ targets }}"
 
   - name: remove temporary files
     local_action:
       module: file
-      path:   "/tmp/telegraf-consumer-{{ inventory_hostname }}.json"
+      path:   "/tmp/telegraf-consumer-{{ item }}.json"
       state:  absent
-    become: no
+    with_items: "{{ targets }}"
+

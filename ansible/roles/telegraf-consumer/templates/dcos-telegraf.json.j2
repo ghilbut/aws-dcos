@@ -1,15 +1,8 @@
 {
-  "id": "/telegraf-consumer-{{ inventory_hostname }}",
+  "id": "/telegraf-consumer-{{ item }}",
   "instances": 1,
   "cpus": 1,
   "mem": 1024,
-  "constraints": [
-    [
-      "hostname",
-      "LIKE",
-      "{{ inventory_hostname }}"
-    ]
-  ],
   "container": {
     "docker": {
       "forcePullImage": false,
@@ -21,7 +14,7 @@
     "volumes": [
       {
         "containerPath": "/etc/telegraf",
-        "hostPath":      "/home/telegraf/consumer/conf",
+        "hostPath":      "telegraf-consumer-{{ item }}/conf",
         "mode":          "RO"
       }
     ]
@@ -32,7 +25,16 @@
     "minimumHealthCapacity": 0
   },
   "taskKillGracePeriodSeconds": 30,
+  "fetch": [
+    {
+      "uri":        "http://{{ groups['dcos-bootstrap-' + zone][0] }}/fetch/telegraf-consumer-{{ item }}/telegraf.conf",
+      "executable": false,
+      "extract":    false,
+      "cache":      false,
+      "destPath":   "telegraf-consumer-{{ item }}/conf/telegraf.conf"
+    }
+  ],
   "dependencies": [
-    "/influxdb-{{ inventory_hostname }}"
+    "/influxdb-{{ item }}"
   ]
 }
