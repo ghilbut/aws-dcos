@@ -1,11 +1,8 @@
 {
-  "id": "/{{ zone }}-telegraf-consumer-{{ inventory_hostname }}",
+  "id": "/telegraf-consumer-{{ inventory_hostname }}",
   "instances": 1,
   "cpus": 1,
   "mem": 1024,
-  "acceptedResourceRoles": [
-    "*"
-  ],
   "constraints": [
     [
       "hostname",
@@ -34,5 +31,8 @@
     "maximumOverCapacity": 0,
     "minimumHealthCapacity": 0
   },
-  "taskKillGracePeriodSeconds": 30
+  "taskKillGracePeriodSeconds": 30,
+  "dependencies": [
+    "/influxdb-{{ inventory_hostname }}"
+  ]
 }

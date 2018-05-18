@@ -36,7 +36,7 @@
 
   - name: start or restart DC/OS service
     uri:
-      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/{{ zone }}-grafana/system"
+      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/grafana/system"
       method: PUT
       body:   "{{ lookup('file', '/tmp/dcos-grafana-system.json') }}"
       body_format: json

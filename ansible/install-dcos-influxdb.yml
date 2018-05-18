@@ -72,7 +72,7 @@
 
   - name: start or restart DC/OS service
     uri:
-      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/{{ zone }}-influxdb-{{ inventory_hostname }}"
+      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/influxdb-{{ inventory_hostname }}"
       method: PUT
       body:   "{{ lookup('file', '/tmp/dcos-influxdb-' + inventory_hostname  + '.json') }}"
       body_format: json

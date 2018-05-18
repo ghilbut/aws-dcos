@@ -6,6 +6,8 @@
   - common
   - haproxy
   #- marathon-lb
+  vars:
+    mlb_group: external
   become: yes
 
   tasks:
@@ -71,8 +73,6 @@
 
 
   - name: compile json for marathon
-    vars:
-      mlb_group: external
     local_action:
       module: template
       src:  roles/marathon-lb/templates/dcos-marathon-lb.json.j2
@@ -81,7 +81,7 @@
 
   - name: start or restart DC/OS service
     uri:
-      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/{{ zone }}-mlb-external-{{ inventory_hostname }}"
+      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/mlb-{{ mlb_group }}-{{ inventory_hostname }}"
       method: PUT
       body:   "{{ lookup('file', '/tmp/mlb-' + inventory_hostname + '.json') }}"
       body_format: json
