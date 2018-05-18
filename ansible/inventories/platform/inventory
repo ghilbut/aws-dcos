@@ -20,28 +20,22 @@
 
 ######## CI Server ########
 
-[ci-a]
+[jenkins-master-a]
 10.0.0.10
-
-[jenkins-master-a:children]
-ci-a
 
 [jenkins-agent-a]
 10.0.0.11
 
 
-[ci-c]
+[jenkins-master-c]
 10.0.1.10
-
-[jenkins-master-c:children]
-ci-a
 
 [jenkins-agent-c]
 10.0.1.11
 
 
 
-######## Kibana ########
+######## Kafka ########
 
 [kafka-a]
 10.0.6.10
@@ -52,7 +46,7 @@ ci-a
 
 
 
-######## InfluxDB + Grafana + Telegraf Consumer ########
+######## InfluxDB + Grafana ########
 
 [influxdb-a]
 10.0.0.4
@@ -60,17 +54,11 @@ ci-a
 [grafana-a:children]
 influxdb-a
 
-[telegraf-a:children]
-influxdb-a
-
 
 [influxdb-c]
 10.0.1.[4:5]
 
 [grafana-c:children]
-influxdb-c
-
-[telegraf-c:children]
 influxdb-c
 
 
