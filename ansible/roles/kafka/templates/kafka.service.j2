@@ -8,9 +8,9 @@ After=network.target remote-fs.target
 Type=simple
 User=kafka
 Group=kafka
-Environment=JAVA_HOME=/usr/share/java
-Environment=JRE_HOME=/usr/share/java/jre
+Environment=JAVA_HOME=/opt/java
+Environment=JRE_HOME=/opt/java/jre
 Environment=KAFKA_HEAP_OPTS=-Xmx{{ jvm_heap_size }}G -Xms{{ jvm_heap_size }}G
 Environment=LOG_DIR=/var/log/kafka
-ExecStart=/usr/share/kafka/bin/kafka-server-start.sh /etc/kafka/server.properties
-ExecStop=/usr/share/kafka/bin/kafka-server-stop.sh
+ExecStart=/opt/kafka/bin/kafka-server-start.sh /etc/kafka/server.properties
+ExecStop=/opt/kafka/bin/kafka-server-stop.sh

@@ -24,17 +24,17 @@
       group: kafka
       name:  kafka
 
-  - stat: path="/usr/share/kafka_2.12-1.1.0"
+  - stat: path="/opt/kafka_2.12-1.1.0"
     register: kafka_path
   - name: uncompress kafka
     unarchive:
       src:  roles/kafka/files/kafka_2.12-1.1.0.tgz
-      dest: /usr/share
+      dest: /opt
     when: not kafka_path.stat.exists
   - name:
     file:
-      src:   /usr/share/kafka_2.12-1.1.0
-      dest:  /usr/share/kafka
+      src:   /opt/kafka_2.12-1.1.0
+      dest:  /opt/kafka
       state: link
 
   - stat: path=/var/lib/kafka/data0
@@ -103,7 +103,7 @@
     vars:
       zk: "{{ groups['dcos-master-' + zone][0] }}:2181/kafka/default"
       replications: "{{ [ groups['kafka-' + zone] | length , 3 ] | min }}"
-    shell: "/usr/share/kafka/bin/kafka-topics.sh --create --partitions 2 --replication-factor {{ replications }} --topic {{ item }} --zookeeper {{ zk }}"
+    shell: "/opt/kafka/bin/kafka-topics.sh --create --partitions 2 --replication-factor {{ replications }} --topic {{ item }} --zookeeper {{ zk }}"
     with_items:
     - telegraf-system-v1
     - telegraf-infra-v1

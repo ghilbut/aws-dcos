@@ -5,17 +5,17 @@
 - name: install jdk 8
   unarchive:
     src:  files/jdk-8u172-linux-x64.tar.gz
-    dest: "/usr/share"
+    dest: "/opt"
   when: not jdk_path.stat.exists
 
 - name: make synbolic link named java
   file:
-    src:   "/usr/share/jdk1.8.0_172"
-    dest:  "/usr/share/java"
+    src:   "/opt/jdk1.8.0_172"
+    dest:  "/opt/java"
     state: link
 
 - name: make symbolic link /usr/bin/java
   file:
-    src:   "/usr/share/java/bin/java"
+    src:   "/opt/java/bin/java"
     dest:  "/usr/bin/java"
     state: link
