@@ -1,0 +1,67 @@
+{
+  "id": "docker-registry",
+  "instances": 1,
+  "cpus": 0.5,
+  "mem":  8192,
+  "container": {
+    "docker": {
+      "forcePullImage": false,
+      "image": "registry:2.6.2",
+      "network": "BRIDGE",
+      "portMappings": [
+        {
+          "name": "api",
+          "containerPort": 5000,
+          "protocol": "tcp"
+        },
+        {
+          "name": "debug",
+          "containerPort": 5001,
+          "protocol": "tcp"
+        }
+      ],
+      "privileged": false
+    },
+    "type": "DOCKER",
+    "volumes": [
+      {
+        "containerPath": "/etc/docker/registry/config.yml",
+        "hostPath":      "docker-registry/config.yml",
+        "mode":          "RO"
+      }
+    ]
+  },
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 300,
+      "ignoreHttp1xx": true,
+      "intervalSeconds": 1,
+      "maxConsecutiveFailures": 3,
+      "path": "/",
+      "portIndex": 0,
+      "protocol": "HTTP",
+      "timeoutSeconds": 10
+    }
+  ],
+  "maxLaunchDelaySeconds": 10,
+  "upgradeStrategy": {
+    "maximumOverCapacity":   1.0,
+    "minimumHealthCapacity": 1.0
+  },
+  "taskKillGracePeriodSeconds": 60,
+  "fetch": [
+    {
+      "uri":        "http://{{ groups['dcos-bootstrap-' + zone][0] }}/fetch/docker-registry/config.yml",
+      "executable": false,
+      "extract":    false,
+      "cache":      false,
+      "destPath":   "docker-registry/config.yml"
+    }
+  ],
+  "labels": {
+    "HAPROXY_GROUP":     "external",
+    "HAPROXY_0_ENABLED": "true",
+    "HAPROXY_0_VHOST":   "docker.{{ dcos.domain_name }}",
+    "HAPROXY_0_PATH":    "-i /v1 /v2"
+  }
+}

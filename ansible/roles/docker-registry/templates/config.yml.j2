@@ -1,0 +1,21 @@
+version: 0.1
+log:
+  level: debug
+  formatter: text
+  fields:
+    service: registry
+    environment: production
+storage:
+  s3:
+    accesskey: {{ aws.access_key }}
+    secretkey: {{ aws.secret_key }}
+    region:    {{ aws.region }}
+    bucket:    {{ lookup('ini', 'docker_registry section=s3 file=' + inifiles.aws) }}
+    chunksize: 419430400
+    rootdirectory: /{{ aws.role }}
+  delete:
+    enabled: true
+http:
+  addr: 0.0.0.0:5000
+  debug:
+    addr: 0.0.0.0:5001

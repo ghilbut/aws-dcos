@@ -1,0 +1,46 @@
+---
+- name: Install Docker Registry on DC/OS Cluster
+  hosts: "dcos-bootstrap-{{ zone }}"
+  gather_facts: no
+  roles:
+  - dcos
+
+  tasks:
+  - file:
+      path:  /home/centos/dcos/htdocs/fetch/docker-registry
+      state: directory
+
+  - name: create docker-registry config.yml
+    template:
+      src:  roles/docker-registry/templates/config.yml.j2
+      dest: /home/centos/dcos/htdocs/fetch/docker-registry/config.yml
+
+
+  - name: create deploy json
+    local_action:
+      module: template
+      src:  "roles/docker-registry/templates/dcos-{{ item }}.json.j2"
+      dest: "/tmp/dcos-{{ item }}.json"
+    with_items:
+    - docker-registry
+    - docker-registry-web
+
+  - name: start or restart DC/OS service
+    uri:
+      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/{{ item }}"
+      method: PUT
+      body:   "{{ lookup('file', '/tmp/dcos-' + item + '.json') }}"
+      body_format: json
+      status_code: 200,201
+    with_items:
+    - docker-registry
+    - docker-registry-web
+
+  - name: remove deploy json
+    local_action:
+      module: file
+      path:  "/tmp/dcos-{{ item }}.json"
+      state: absent
+    with_items:
+    - docker-registry
+    - docker-registry-web

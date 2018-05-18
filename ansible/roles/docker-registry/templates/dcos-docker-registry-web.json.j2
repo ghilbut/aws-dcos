@@ -1,0 +1,54 @@
+{
+  "id": "/docker-registry-web",
+  "instances": 1,
+  "cpus": 0.5,
+  "mem":  4096,
+  "env": {
+    "REGISTRY_URL":      "https://{{ dcos.domain_name }}/v2",
+    "REGISTRY_NAME":     "docker.{{ dcos.domain_name }}",
+    "REGISTRY_READONLY": "false"
+  },
+  "container": {
+    "docker": {
+      "forcePullImage": false,
+      "image": "hyper/docker-registry-web:v0.1.2",
+      "network": "BRIDGE",
+      "portMappings": [
+        {
+          "name":          "http",
+          "containerPort": 8080,
+          "hostPort":      0,
+          "protocol":      "tcp"
+        }
+      ],
+      "privileged": false
+    },
+    "type": "DOCKER"
+  },
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 300,
+      "ignoreHttp1xx": true,
+      "intervalSeconds": 1,
+      "maxConsecutiveFailures": 3,
+      "path": "/",
+      "portIndex": 0,
+      "protocol": "HTTP",
+      "timeoutSeconds": 60
+    }
+  ],
+  "maxLaunchDelaySeconds": 180,
+  "upgradeStrategy": {
+    "maximumOverCapacity":   1.0,
+    "minimumHealthCapacity": 1.0
+  },
+  "taskKillGracePeriodSeconds": 30,
+  "labels": {
+    "HAPROXY_GROUP":     "external",
+    "HAPROXY_0_ENABLED": "true",
+    "HAPROXY_0_VHOST":   "docker.{{ dcos.domain_name }}"
+  },
+  "dependencies": [
+    "/docker-registry"
+  ]
+}

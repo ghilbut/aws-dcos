@@ -18,6 +18,29 @@
 
 
 
+######## CI Server ########
+
+[ci-a]
+10.0.0.10
+
+[jenkins-master-a:children]
+ci-a
+
+[jenkins-agent-a]
+10.0.0.11
+
+
+[ci-c]
+10.0.1.10
+
+[jenkins-master-c:children]
+ci-a
+
+[jenkins-agent-c]
+10.0.1.11
+
+
+
 ######## Kibana ########
 
 [kafka-a]
@@ -91,23 +114,6 @@ es6-coord-c
 
 [logstash-c:children]
 es6-coord-c
-
-
-
-######## Jenkins ########
-
-[jenkins-master-a]
-10.0.0.10
-
-[jenkins-agent-a]
-10.0.0.11
-
-
-[jenkins-master-c]
-10.0.1.10
-
-[jenkins-agent-c]
-10.0.1.11
 
 
 

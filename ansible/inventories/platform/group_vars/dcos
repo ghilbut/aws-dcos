@@ -1,7 +1,7 @@
 ---
 dcos:
-  cluster_name: Platform
-  domain_name:  whalex.net
+  cluster_name: "{{ lookup('ini', 'cluster_name section=common file=' + inifiles.aws) }}"
+  domain_name:  "{{ lookup('ini', 'domain_name section=common file=' + inifiles.aws) }}"
   resolvers:
   - 10.0.0.2
   - 8.8.4.4

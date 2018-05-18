@@ -1,0 +1,21 @@
+---
+- name: Create VPC Network
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    access_key: "{{ lookup('ini', 'access_key section=credential file=' + inifiles.aws) }}"
+    secret_key: "{{ lookup('ini', 'secret_key section=credential file=' + inifiles.aws) }}"
+    region:     "{{ aws.region }}"
+    role:       "{{ aws.role }}"
+    org:        "{{ aws.organization }}"
+    owner:      "{{ aws.owner }}"
+
+  tasks:
+  - name: create virtual private clouds
+    s3:
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      bucket:         "{{ lookup('ini', 'docker_registry section=s3 file=' + inifiles.aws) }}"
+      mode:           create
+      region:         "{{ region }}"

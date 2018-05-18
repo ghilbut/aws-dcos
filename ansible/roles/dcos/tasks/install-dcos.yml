@@ -60,7 +60,7 @@
   register: dcos_install
 - name: download install script
   get_url:
-    url: "http://{{ bootstrap }}/dcos_install.sh"
+    url: "http://{{ bootstrap }}/bootstrap/dcos_install.sh"
     dest: /home/centos
     group: centos
     owner: centos
