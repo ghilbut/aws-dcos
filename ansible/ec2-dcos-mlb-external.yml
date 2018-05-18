@@ -2,9 +2,9 @@
 - name: Create EC2 Instance for DC/OS Marathon-LB External
   hosts: localhost
   connection: local
-  gather_facts: False
+  gather_facts: no
   vars:
-    ec2_name:  "ec2-{{ zone }}-dcos-mlb-external"
+    ec2_name:  "ec2-{{ aws.role }}-{{ zone }}-dcos-mlb-external"
     instances: "{{ groups['dcos-slave-mlb-external-' + zone] }}"
 
   tasks:

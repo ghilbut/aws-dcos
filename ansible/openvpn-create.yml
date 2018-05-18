@@ -31,7 +31,7 @@
   tasks:
   - name: create ec2 instance
     vars:
-      name: "ec2-{{ zone }}-openvpn"
+      name: "ec2-{{ aws.role }}-{{ zone }}-openvpn"
       type: t2.micro
     ec2:
       assign_public_ip: yes

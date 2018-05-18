@@ -35,7 +35,7 @@
         organization: "{{ org }}"
         owner:        "{{ owner }}"
     include: roles/vpc/tasks/subnet-create.yml
-    with_items: "{{ aws.network.subnets.mgmt + aws.network.subnets.kafka + aws.network.subnets.es6 + aws.network.subnets.network + aws.network.subnets.private + aws.network.subnets.public }}"
+    with_items: "{{ aws.network.subnets.mgmt + aws.network.subnets.es6 + aws.network.subnets.kafka + aws.network.subnets.network + aws.network.subnets.private + aws.network.subnets.public }}"
 
   - name: create internet gateway
     vars:
@@ -77,7 +77,7 @@
         Name:         "route-{{ role }}-private-{{ item }}"
         organization: "{{ org }}"
         owner:        "{{ owner }}"
-      subnets:        "{{ (aws.network.subnets.mgmt + aws.network.subnets.kafka + aws.network.subnets.es6 + aws.network.subnets.private) | selectattr('az', 'equalto', item) | map(attribute='cidr') | list }}"
+      subnets:        "{{ (aws.network.subnets.mgmt + aws.network.subnets.es6 + aws.network.subnets.kafka + aws.network.subnets.private) | selectattr('az', 'equalto', item) | map(attribute='cidr') | list }}"
     include: roles/vpc/tasks/route-table-create.yml
     with_items: "{{ aws.network.subnets.network | map(attribute='az') | list }}"
 

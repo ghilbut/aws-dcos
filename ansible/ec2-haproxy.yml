@@ -4,7 +4,7 @@
   connection: local
   gather_facts: False
   vars:
-    ec2_name:  "ec2-{{ zone }}-haproxy"
+    ec2_name:  "ec2-{{ aws.role }}-{{ zone }}-haproxy"
     instances: "{{ groups['haproxy-' + zone] }}"
 
   tasks:

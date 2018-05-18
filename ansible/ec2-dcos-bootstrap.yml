@@ -4,7 +4,7 @@
   connection: local
   gather_facts: False
   vars:
-    ec2_name:  "ec2-{{ zone }}-dcos-bootstrap"
+    ec2_name:  "ec2-{{ aws.role }}-{{ zone }}-dcos-bootstrap"
     instances: "{{ groups['dcos-bootstrap-' + zone] }}"
 
   tasks:

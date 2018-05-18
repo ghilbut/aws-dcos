@@ -4,7 +4,7 @@
   connection: local
   gather_facts: False
   vars:
-    ec2_name:  "ec2-{{ zone }}-es6-data"
+    ec2_name:  "ec2-{{ aws.role }}-{{ zone }}-es6-data"
     instances: "{{ groups['es6-data-' + zone] }}"
 
   tasks:
