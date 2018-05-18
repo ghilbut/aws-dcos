@@ -18,7 +18,7 @@
   - include: roles/dcos/tasks/install-dcos.yml
     vars:
       bootstrap: "{{ groups['dcos-bootstrap-' + zone][0] }}"
-      dcos_block_size: 4
+      dcos_block_size: 2
       dcos_mode: slave
 
 
@@ -31,47 +31,88 @@
       - jenkins-master
 
 
+  - stat: path=/var/lib/tomcat
+    register: tomcat_path
+  - name: make file for jenkins block device
+    shell: "fallocate -l 4GiB /mnt/tomcat.disk.image"
+    when: not tomcat_path.stat.exists
+  - include: roles/common/tasks/mount-device-block.yml
+    vars:
+      mount_device: /mnt/tomcat.disk.image
+      mount_path:   /var/lib/tomcat
+    when: not tomcat_path.stat.exists
+
+  - name: create directories for volume binding
+    file:
+      path:  "/var/lib/tomcat/{{ item }}"
+      state: directory
+      recurse: yes
+    with_items:
+    - conf
+    - logs
+    - temp
+
+  - name: create jenkins context
+    copy:
+      content: |
+        <?xml version="1.0" encoding="utf-8"?>
+        <Context
+          path="/backend"
+          docBase="/var/lib/jenkins/lib/2.107.3/jenkins.war"
+          debug="0"
+          privileged="true">
+          <Environment name="JENKINS_HOME" value="/var/lib/jenkins/home/backend" type="java.lang.String"/>
+        </Context>
+      dest: /var/lib/tomcat/conf/backend.xml
+
+
   - stat: path=/var/lib/jenkins
-    register: lib_path
+    register: jenkins_path
   - include: roles/common/tasks/mount-device-block.yml
     vars:
       mount_device: /dev/nvme1n1
       mount_path:   /var/lib/jenkins
-    when: not lib_path.stat.exists
+    when: not jenkins_path.stat.exists
 
-  - stat: path=/var/log/jenkins
-    register: log_path
-  - name: make file for jenkins block device
-    shell: "fallocate -l 1GiB /mnt/jenkins_log.disk.image"
-    when: not log_path.stat.exists
-  - include: roles/common/tasks/mount-device-block.yml
-    vars:
-      mount_device: /mnt/jenkins_log.disk.image
-      mount_path:   /var/log/jenkins
-    when: not log_path.stat.exists
+  - name: create directories for jenkins
+    file:
+      path:  "/var/lib/jenkins{{ item }}"
+      state: directory
+      recurse: yes
+    with_items:
+    - /home/backend
+    - /lib/2.107.3
 
-  # centos uid is 1000 and jenkins need permission 1000
+  - name: download jenkins.war
+    get_url:
+      url:  http://mirrors.jenkins.io/war-stable/2.107.3/jenkins.war
+      dest: /var/lib/jenkins/lib/2.107.3/jenkins.war
+
+
   - name: change permissions
     file:
-      path:  "/var/{{ item }}/jenkins"
-      group: centos
-      owner: centos
+      path:    "/var/lib/{{ item }}"
+      group:   centos
+      owner:   centos
+      recurse: yes
     with_items:
-    - lib
-    - log
+    - tomcat
+    - jenkins
 
 
   - name: create deploy json
+    vars:
+      domain_name: "{{ lookup('ini', 'domain_name section=common file=' + inifiles.aws) }}"
     local_action:
       module: template
       src:  roles/jenkins/templates/dcos-jenkins.json.j2
-      dest: "/tmp/dcos-jenkins.json"
+      dest: /tmp/dcos-jenkins.json
     run_once: yes
     become: no
 
   - name: start or restart DC/OS service
     uri:
-      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/{{ zone }}-jenkins"
+      url:    "http://{{ groups['dcos-master-' + zone][0] }}/marathon/v2/apps/jenkins"
       method: PUT
       body:   "{{ lookup('file', '/tmp/dcos-jenkins.json') }}"
       body_format: json
@@ -80,22 +121,6 @@
   - name: remove deploy json
     local_action:
       module: file
-      path:  "/tmp/dcos-jenkins.json"
+      path:  /tmp/dcos-jenkins.json
       state: absent
     become: no
-
-
-  - name: change resource rules
-    copy:
-      src:  roles/jenkins/files/mesos-resources.master
-      dest: /var/lib/dcos/mesos-resources
-
-  - name: remove mesos metadata
-    file:
-      path:  /var/lib/mesos/slave/meta/slaves/latest
-      state: absent
-
-  - name: restart dcos-mesos-slave
-    systemd:
-      name:    dcos-mesos-slave
-      state:   restarted

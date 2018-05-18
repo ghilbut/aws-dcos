@@ -1,5 +1,5 @@
 {
-  "id": "{{ zone }}-jenkins",
+  "id": "/jenkins",
   "instances": 1,
   "cpus": 2,
   "mem": 4096,
@@ -12,8 +12,8 @@
   ],
   "container": {
     "docker": {
-      "forcePullImage": true,
-      "image": "jenkins/jenkins:lts-alpine",
+      "forcePullImage": false,
+      "image": "tomcat:8.5.31",
       "network": "BRIDGE",
       "parameters": [
         {
@@ -29,13 +29,7 @@
         {
           "name": "http",
           "containerPort": 8080,
-          "hostPort": 8080,
-          "protocol": "tcp"
-        },
-        {
-          "name": "slaves",
-          "containerPort": 50000,
-          "hostPort": 50000,
+          "hostPort": 0,
           "protocol": "tcp"
         }
       ],
@@ -44,22 +38,44 @@
     "type": "DOCKER",
     "volumes": [
       {
-        "containerPath": "/var/jenkins_home",
-        "hostPath": "/var/lib/jenkins",
+        "containerPath": "/usr/local/tomcat/conf/Catalina/localhost",
+        "hostPath": "/var/lib/tomcat/conf",
+        "mode": "RO"
+      },
+      {
+        "containerPath": "/usr/local/tomcat/logs",
+        "hostPath": "/var/lib/tomcat/logs",
         "mode": "RW"
       },
       {
-        "containerPath": "/var/log/jenkins",
-        "hostPath": "/var/log/jenkins",
+        "containerPath": "/usr/local/tomcat/temp",
+        "hostPath": "/var/lib/tomcat/temp",
+        "mode": "RW"
+      },
+      {
+        "containerPath": "/var/lib/jenkins",
+        "hostPath": "/var/lib/jenkins",
         "mode": "RW"
       }
     ]
   },
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 60,
+      "ignoreHttp1xx": true,
+      "intervalSeconds": 1,
+      "maxConsecutiveFailures": 3,
+      "path": "/",
+      "portIndex": 0,
+      "protocol": "HTTP",
+      "timeoutSeconds": 10
+    }
+  ],
   "maxLaunchDelaySeconds": 60,
   "labels": {
     "HAPROXY_GROUP": "external",
     "HAPROXY_0_ENABLED": "true",
-    "HAPROXY_0_VHOST": "jenkins.whalex.net"
+    "HAPROXY_0_VHOST": "jenkins.{{ domain_name }}"
   },
   "upgradeStrategy": {
     "maximumOverCapacity": 0,

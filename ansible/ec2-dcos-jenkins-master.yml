@@ -23,7 +23,7 @@
         Name:           "{{ ec2_name }}"
         organization:   "{{ aws.organization }}"
         owner:          "{{ aws.owner }}"
-      instance_type:  m5.large
+      instance_type:  m5.4xlarge
       key_name:       platform
       private_ip:     "{{ item }}"
       region:         "{{ aws.region }}"
