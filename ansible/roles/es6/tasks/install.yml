@@ -35,7 +35,7 @@
 - name: set JAVA_HOME
   lineinfile:
     path: /etc/sysconfig/elasticsearch
-    line: JAVA_HOME=/usr/share/java
+    line: JAVA_HOME=/opt/java
     insertafter: "^#JAVA_HOME="
 
 - name: install x-pack
