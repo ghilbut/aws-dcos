@@ -8,8 +8,6 @@
 
   tasks:
   - include: roles/common/tasks/install-telegraf.yml
-    vars:
-      telegraf_role: es6-coord
 
   - include: roles/common/tasks/install-java8.yml
 

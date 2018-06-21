@@ -10,22 +10,6 @@
     region:     "{{ aws.region }}"
     org:        "{{ aws.organization }}"
     owner:      "{{ aws.owner }}"
-    amis:
-      # Ubuntu Server 16.04 LTS (HVM), SSD Volume Type
-      #ap-northeast-1: 
-      ap-northeast-2: ami-67973709
-      #ap-south-1:     
-      #ap-southeast-1: 
-      #ap-southeast-2: 
-      #ca-central-1:   
-      #eu-central-1:   
-      #eu-west-1:      
-      #eu-west-2:      
-      #sa-east-1:      
-      #us-east-1:      
-      #us-east-2:      
-      #us-west-1:      
-      #us-west-2:      
     ebs_optimized: "{% if type.startswith('t') %} yes {% else %} no {% endif %}"
 
   tasks:
@@ -39,13 +23,13 @@
       aws_secret_key: "{{ secret_key }}"
       ebs_optimized:  "{{ ebs_optimized|bool }}"
       group:          "{{ aws.role }}-openvpn"
-      image:          "{{ amis[region] }}"
+      image:          "{{ aws.ami.centos }}"
       instance_tags: 
         Name:         "{{ name }}"
         organization: "{{ org }}"
         owner:        "{{ owner }}"
       instance_type:  "{{ type }}"
-      key_name:       platform
+      key_name:       develop
       private_ip:     "{{ groups['vpn-' + zone][0] }}"
       region:         "{{ region }}"
       source_dest_check: no

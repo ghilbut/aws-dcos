@@ -6,7 +6,7 @@
 
 - name: copy ssh key
   copy:
-    src:  "{{ inventory_dir }}/files/platform.pem"
+    src:  "{{ inventory_dir }}/files/{{ aws.ec2.key_pair }}.pem"
     dest: /home/centos/dcos/bootstrap/genconf/ssh_key
 
 - name: copy ip-detect
@@ -21,7 +21,7 @@
 
 - name: download dcos_generate_config.sh
   get_url:
-    url:  https://downloads.dcos.io/dcos/stable/1.11.1/dcos_generate_config.sh
+    url:  https://downloads.dcos.io/dcos/stable/1.11.2/dcos_generate_config.sh
     dest: /home/centos/dcos/bootstrap/dcos_generate_config.sh 
 
 - name: make bootstrap environments

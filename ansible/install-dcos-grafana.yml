@@ -2,6 +2,8 @@
 - name: Install Grafana
   hosts: "grafana-{{ zone }}"
   gather_facts: no
+  vars:
+    domain_name: "system.g.{{ lookup('ini', 'domain_name section=common file=' + inifiles.aws) }}"
   become: yes
 
   tasks:
@@ -15,8 +17,6 @@
     - logs
 
   - name: set config of grafana for system
-    vars:
-      domain_name: system.g.whalex.net
     template:
       src:  roles/grafana/templates/dcos-grafana-system.ini.j2
       dest: /home/grafana/system/conf/grafana.ini

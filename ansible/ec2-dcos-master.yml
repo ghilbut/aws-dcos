@@ -24,7 +24,7 @@
         organization:     "{{ aws.organization }}"
         owner:            "{{ aws.owner }}"
       instance_type:    m5.xlarge
-      key_name:         platform
+      key_name:         "{{ aws.ec2.key_pair }}"
       private_ip:       "{{ item }}"
       region:           "{{ aws.region }}"
       volumes:

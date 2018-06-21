@@ -75,7 +75,7 @@ aws:
         from_port: 1194
         to_port:   1194
         cidr_ip:   0.0.0.0/0
-      description: "openvpn SecurityGroup for EC2 instances"
+      description: "openvpn security group for EC2 instances"
     - suffix:      private
       rules:
       - proto:     all
@@ -90,15 +90,15 @@ aws:
         from_port: all
         to_port:   all
         cidr_ip:   192.168.0.0/16
-      description: "defualt private SecurityGroup for EC2 instances"
+      description: "private security group for EC2 instances"
     - suffix:      public
       rules:
       - proto:     all
         from_port: all
         to_port:   all
         cidr_ip:   0.0.0.0/0
-      description: "defualt public SecurityGroup for EC2 instances"
+      description: "public security group for EC2 instances"
   ec2:
-    ssh_key: platform.pem
+    key_pair: devops
   ami:
     centos: ami-995cf3f7

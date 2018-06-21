@@ -16,8 +16,6 @@
       docker_block_size: 2
 
   - include: roles/common/tasks/install-telegraf.yml
-    vars:
-      telegraf_role: dcos-slave
 
   - include: roles/dcos/tasks/install-dcos.yml
     vars:
@@ -26,11 +24,6 @@
       dcos_mode: slave
 
   - include: roles/dcos/tasks/install-dcos-filebeat.yml
-    vars:
-      beat_tags:
-      - dcos
-      - slave
-      - mlb-external
 
 
   - stat: path=/var/log/haproxy

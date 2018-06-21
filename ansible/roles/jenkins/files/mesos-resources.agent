@@ -1,0 +1,1 @@
+MESOS_RESOURCES='cpus:0.1;gpus:0;mem:128;disk:0;ports:[9999-9999]'

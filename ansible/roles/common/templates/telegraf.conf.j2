@@ -19,7 +19,6 @@
   dc   = "{{ aws.region }}"
   rack = "{{ aws.region + zone }}"
   # user = "$USER"
-  role = "{{ telegraf_role }}"
 
 
 # Configuration for telegraf agent
@@ -171,6 +170,22 @@
 # Read metrics about system load & uptime
 [[inputs.system]]
   # no configuration
+
+
+# Read specific statistics per cgroup
+[[inputs.cgroup]]
+  ## Directories in which to look for files, globs are supported.
+  ## Consider restricting paths to the set of cgroups you really
+  ## want to monitor if you have a large number of cgroups, to avoid
+  ## any cardinality issues.
+  # paths = [
+  #   "/cgroup/memory",
+  #   "/cgroup/memory/child1",
+  #   "/cgroup/memory/child2/*",
+  # ]
+  ## cgroup stat fields, as file names, globs are supported.
+  ## these file names are appended to each path from above.
+  # files = ["memory.*usage*", "memory.limit_in_bytes"]
 
 
 {% if docker_installed %}

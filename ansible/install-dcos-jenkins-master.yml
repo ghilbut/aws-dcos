@@ -12,8 +12,6 @@
       docker_block_size: 64
 
   - include: roles/common/tasks/install-telegraf.yml
-    vars:
-      telegraf_role: dcos-slave-jenkins-master
 
   - include: roles/dcos/tasks/install-dcos.yml
     vars:
@@ -23,12 +21,6 @@
 
 
   - include: roles/dcos/tasks/install-dcos-filebeat.yml
-    vars:
-      beat_tags:
-      - dcos
-      - slave
-      - jenkins
-      - jenkins-master
 
 
   - stat: path=/var/lib/tomcat
@@ -62,6 +54,7 @@
           debug="0"
           privileged="true">
           <Environment name="JENKINS_HOME" value="/var/lib/jenkins/home/backend" type="java.lang.String"/>
+          <Resources cachingAllowed="true" cacheMaxSize="102400" />
         </Context>
       dest: /var/lib/tomcat/conf/backend.xml
 

@@ -10,11 +10,11 @@
 ######## HAProxy ########
 
 [haproxy-a]
-10.0.254.4
+10.0.254.[4:5]
 
 
 [haproxy-c]
-10.0.255.[4:5]
+10.0.255.4
 
 
 
@@ -38,25 +38,25 @@
 ######## Kafka ########
 
 [kafka-a]
-10.0.6.10
+10.0.6.[10:14]
 
 
 [kafka-c]
-10.0.7.[10:14]
+10.0.7.10
 
 
 
 ######## InfluxDB + Grafana ########
 
 [influxdb-a]
-10.0.0.4
+10.0.0.[4:5]
 
 [grafana-a:children]
 influxdb-a
 
 
 [influxdb-c]
-10.0.1.[4:5]
+10.0.1.4
 
 [grafana-c:children]
 influxdb-c
@@ -66,7 +66,7 @@ influxdb-c
 ######## Elasticsearch ########
 
 [es6-master-a]
-10.0.4.100
+10.0.4.[100:104]
 
 [es6-data-a:children]
 es6-master-a
@@ -75,7 +75,7 @@ es6-master-a
 es6-master-a
 
 [es6-coord-a]
-10.0.4.10
+10.0.4.[10:11]
 
 [kibana-a:children]
 es6-coord-a
@@ -85,7 +85,7 @@ es6-coord-a
 
 
 [es6-master-c]
-10.0.5.[100:104]
+10.0.5.100
 
 [es6-data-c:children]
 es6-master-c
@@ -95,7 +95,6 @@ es6-master-c
 
 [es6-coord-c]
 10.0.5.10
-10.0.5.11
 
 [kibana-c:children]
 es6-coord-c
@@ -111,14 +110,13 @@ es6-coord-c
 10.0.0.249
 
 [dcos-master-a]
-10.0.0.250
+10.0.0.[250:254]
 
 [dcos-slave-mlb-external-a]
-10.0.10.4
+10.0.10.[4:5]
 
 [dcos-slave-new-a]
-10.0.10.10
-10.0.10.11
+10.0.10.[10:11]
 
 [dcos-slave-a]
 
@@ -130,14 +128,13 @@ es6-coord-c
 10.0.1.249
 
 [dcos-master-c]
-10.0.1.[250:254]
+10.0.1.250
 
 [dcos-slave-mlb-external-c]
-10.0.11.[4:5]
+10.0.11.4
 
 [dcos-slave-new-c]
-10.0.11.10
-10.0.11.11
+10.0.11.[10:11]
 
 [dcos-slave-c]
 

@@ -12,8 +12,6 @@
     become: yes
 
   - include: roles/common/tasks/install-telegraf.yml
-    vars:
-      telegraf_role: dcos-bootstrap
     become: yes
 
 

@@ -27,10 +27,16 @@
       ],
       "portMappings": [
         {
-          "name": "http",
           "containerPort": 8080,
           "hostPort": 0,
           "protocol": "tcp"
+          "name": "http",
+        },
+        {
+          "containerPort": 49187,
+          "hostPort": 0,
+          "protocol": "tcp",
+          "name": "jnlp"
         }
       ],
       "privileged": false
