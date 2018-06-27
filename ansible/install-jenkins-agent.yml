@@ -1,0 +1,58 @@
+---
+- name: Install Jenkins Agent
+  hosts: "jenkins-agent-{{ zone }}"
+  gather_facts: no
+  roles:
+  - dcos
+  become: yes
+
+  tasks:
+  - include: roles/common/tasks/install-java8.yml
+
+  - include: roles/common/tasks/install-docker.yml
+    vars:
+      docker_block_size: 64
+
+  - name: install git-core
+    yum:
+      name: git-core
+
+  - include: roles/common/tasks/install-telegraf.yml
+
+  - stat: path=/var/lib/jenkins
+    register: lib_path
+  - include: roles/common/tasks/mount-device-block.yml
+    vars:
+      mount_device: /dev/nvme1n1
+      mount_path:   /var/lib/jenkins
+    when: not lib_path.stat.exists
+
+  - stat: path=/var/log/jenkins
+    register: log_path
+  - name: make file for jenkins block device
+    shell: "fallocate -l 1GiB /mnt/jenkins_log.disk.image"
+    when: not log_path.stat.exists
+  - include: roles/common/tasks/mount-device-block.yml
+    vars:
+      mount_device: /mnt/jenkins_log.disk.image
+      mount_path:   /var/log/jenkins
+    when: not log_path.stat.exists
+
+  # centos uid is 1000 and jenkins need permission 1000
+  - name: change permissions
+    file:
+      path:  "/var/{{ item }}/jenkins"
+      group: centos
+      owner: centos
+    with_items:
+    - lib
+    - log
+
+  - name: create cron job to run docker-gc
+    copy:
+      content: |
+        SHELL=/bin/bash
+        PATH=/sbin:/bin:/usr/sbin:/usr/bin
+        MAILTO=root
+        */10 * * * * root docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /etc:/etc:ro spotify/docker-gc 
+      dest: /etc/cron.d/docker-gc

@@ -1,0 +1,71 @@
+- name: Create EC2 Instances for Jenkins Agent
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    ec2_name:  "ec2-{{ aws.role }}-{{ zone }}-jenkins-agent"
+    instances: "{{ groups['jenkins-agent-' + zone] }}"
+
+  tasks:
+  - name: launch ec2 instances for jenkins agent
+    vars:
+      subnet_name: "{{ item | subnet_name(aws) }}"
+      subnet_id:   "{{ lookup('ini', subnet_name + ' section=subnets file=' + inifiles.aws) }}"
+    ec2:
+      aws_access_key: "{{ aws.access_key }}"
+      aws_secret_key: "{{ aws.secret_key }}"
+      ebs_optimized:  yes
+      group_id:
+      - "{{ lookup('ini', 'sg-' + aws.role + '-private section=security_groups file=' + inifiles.aws) }}"
+      image:          "{{ aws.ami.centos }}"
+      instance_tags:
+        Name:           "{{ ec2_name }}"
+        organization:   "{{ aws.organization }}"
+        owner:          "{{ aws.owner }}"
+      instance_type:  t2.medium
+      key_name:       "{{ aws.ec2.key_pair }}"
+      private_ip:     "{{ item }}"
+      region:         "{{ aws.region }}"
+      volumes:
+      - delete_on_termination: yes
+        device_name: /dev/sda1
+        volume_size: 80
+        volume_type: gp2
+      - delete_on_termination: yes
+        device_name: /dev/sdb
+        volume_size: 64
+        volume_type: gp2
+      vpc_subnet_id: "{{ subnet_id }}"
+      wait: yes
+    with_items: "{{ instances }}"
+    register: ec2
+
+  - include: roles/common/tasks/tagging-volume.yml
+    vars:
+      target:     "{{ item.instances.0 }}"
+      volume:      /dev/sda1
+      volume_name: "{{ ec2_name }}"
+    with_items: "{{ ec2.results }}"
+
+  - include: roles/common/tasks/tagging-volume.yml
+    vars:
+      target:     "{{ item.instances.0 }}"
+      volume:      /dev/sdb
+      volume_name: "{{ ec2_name }}-jenkins"
+    with_items: "{{ ec2.results }}"
+
+  - name: remove host from ~/.ssh/known_hosts
+    known_hosts: name={{ item }} state=absent
+    with_items: "{{ instances }}"
+
+
+
+- name: Wait running EC2 instances
+  hosts: "jenkins-agent-{{ zone }}"
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - pause: seconds=60
+  - wait_for_connection:
+      dealy: 5

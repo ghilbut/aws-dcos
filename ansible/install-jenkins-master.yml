@@ -1,0 +1,147 @@
+---
+- name: Install Jenkins Master
+  hosts: "jenkins-master-{{ zone }}"
+  gather_facts: no
+  roles:
+  - dcos
+  vars:
+    tomcat: apache-tomcat-8.5.31
+    version: 2.121.1
+  become: yes
+
+  tasks:
+  - include: roles/common/tasks/install-java8.yml
+
+  - include: roles/common/tasks/install-docker.yml
+    vars:
+      docker_block_size: 8
+
+  - name: install git-core
+    yum:
+      name: git-core
+
+  - include: roles/common/tasks/install-telegraf.yml
+
+
+
+  - group:
+      name:   tomcat
+  - user:
+      append: yes
+      #create_home: no
+      createhome: no
+      group:  tomcat
+      groups: docker
+      name:   tomcat
+
+  - stat: path=/opt/tomcat
+    register: tomcat_path
+  - name: make file for jenkins block device
+    shell: "fallocate -l 4GiB /mnt/tomcat.disk.image"
+    when: not tomcat_path.stat.exists
+  - include: roles/common/tasks/mount-device-block.yml
+    vars:
+      mount_device: /mnt/tomcat.disk.image
+      mount_path:   /opt/tomcat
+    when: not tomcat_path.stat.exists
+
+  - name: install tomcat
+    unarchive:
+      src:  "http://mirror.navercorp.com/apache/tomcat/tomcat-8/v8.5.31/bin/{{ tomcat }}.tar.gz"
+      dest: /opt/tomcat
+      remote_src: yes
+
+  - name: create tomcat.service for systemd
+    copy:
+      content: |
+        # Systemd unit file for tomcat
+        [Unit]
+        Description=Apache Tomcat Web Application Container
+        After=syslog.target network.target
+
+        [Service]
+        Type=forking
+
+        Environment=JAVA_HOME=/opt/java/jre
+        Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid
+        Environment=CATALINA_HOME=/opt/tomcat/{{ tomcat }}
+        Environment=CATALINA_BASE=/opt/tomcat/{{ tomcat }}
+        Environment='CATALINA_OPTS=-Xms2G -Xmx2G -server -XX:+UseParallelGC'
+        Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+
+        ExecStart=/opt/tomcat/{{ tomcat }}/bin/startup.sh
+        ExecStop=/bin/kill -15 $MAINPID
+
+        User=tomcat
+        Group=tomcat
+        UMask=0007
+        RestartSec=10
+        Restart=always
+
+        [Install]
+        WantedBy=multi-user.target
+      dest: /etc/systemd/system/tomcat.service
+
+  - name: run tomcat as service
+    systemd:
+      daemon_reload: yes
+      enabled: yes
+      name:    tomcat
+      state:   started
+
+
+  - stat: path=/var/lib/jenkins
+    register: jenkins_path
+  - include: roles/common/tasks/mount-device-block.yml
+    vars:
+      mount_device: /dev/nvme1n1
+      mount_path:   /var/lib/jenkins
+    when: not jenkins_path.stat.exists
+
+  - name: create directories for jenkins
+    file:
+      path:  "/var/lib/jenkins{{ item }}"
+      state: directory
+      recurse: yes
+    with_items:
+    - /home/server
+    - "/war/{{ version }}"
+
+  - name: download jenkins.war
+    get_url:
+      url:  "http://mirrors.jenkins.io/war-stable/{{ version }}/jenkins.war"
+      dest: /var/lib/jenkins/war/{{ version }}/jenkins.war
+
+  - name: change permissions
+    file:
+      path:    "{{ item }}"
+      group:   tomcat
+      owner:   tomcat
+      recurse: yes
+    with_items:
+    - /opt/tomcat
+    - /var/lib/jenkins
+
+  - name: create jenkins context
+    copy:
+      content: |
+        <?xml version="1.0" encoding="utf-8"?>
+        <Context
+          path="/server"
+          docBase="/var/lib/jenkins/war/{{ version }}/jenkins.war"
+          debug="0"
+          privileged="true">
+          <Environment name="JENKINS_HOME" value="/var/lib/jenkins/home/server" type="java.lang.String"/>
+          <Resources cachingAllowed="true" cacheMaxSize="102400" />
+        </Context>
+      dest: "/opt/tomcat/{{ tomcat }}/conf/Catalina/localhost/server.xml"
+
+
+  - name: create cron job to run docker-gc
+    copy:
+      content: |
+        SHELL=/bin/bash
+        PATH=/sbin:/bin:/usr/sbin:/usr/bin
+        MAILTO=root
+        */10 * * * * root docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /etc:/etc:ro spotify/docker-gc 
+      dest: /etc/cron.d/docker-gc

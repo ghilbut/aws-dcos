@@ -21,17 +21,17 @@
 ######## CI Server ########
 
 [jenkins-master-a]
-10.0.0.10
+10.0.0.254
 
 [jenkins-agent-a]
-10.0.0.11
+10.0.0.253
 
 
 [jenkins-master-c]
-10.0.1.10
+10.0.1.254
 
 [jenkins-agent-c]
-10.0.1.11
+10.0.1.253
 
 
 
