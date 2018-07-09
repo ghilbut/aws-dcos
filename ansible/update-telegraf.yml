@@ -1,0 +1,30 @@
+---
+- name: Install DC/OS Master Agents
+  hosts: all
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: check docker
+    stat: path=/var/lib/docker
+    register: docker_path
+    ignore_errors: yes
+
+  - name: copy config
+    vars:
+      docker_installed: "{{ docker_path.stat.exists }}"
+    template:
+      src:  roles/common/templates/telegraf.conf.j2
+      dest: /etc/telegraf/telegraf.conf
+    ignore_errors: yes
+  - name: check validation
+    shell: /usr/bin/telegraf -config /etc/telegraf/telegraf.conf -test
+    ignore_errors: yes
+
+  - name: run on systemd
+    systemd:
+      daemon-reload: yes
+      enabled: yes
+      name:    telegraf
+      state:   restarted
+    ignore_errors: yes

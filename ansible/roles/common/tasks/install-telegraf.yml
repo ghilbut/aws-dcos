@@ -36,6 +36,7 @@
 
 - name: run on systemd
   systemd:
+    daemon-reload: yes
     enabled: yes
     name:    telegraf
     state:   started

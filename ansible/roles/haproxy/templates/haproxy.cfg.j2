@@ -43,13 +43,28 @@ frontend http
   bind *:80
   mode http
 
-  acl kibana  hdr(host) kibana.{{ dcos.domain_name }}
-  use_backend kibana  if kibana
+  acl jenkins  hdr(host) jenkins.{{ dcos.domain_name }}
+  use_backend jenkins  if jenkins
+
+  acl kibana   hdr(host) kibana.{{ dcos.domain_name }}
+  use_backend kibana   if kibana
 
   acl dcos_master  hdr(host)  master.{{ dcos.domain_name }}
   use_backend dcos_master  if dcos_master
 
   default_backend dcos_mlb_external
+
+
+backend jenkins
+  balance roundrobin
+  mode http
+  option forwardfor
+  http-request set-header X-Forwarded-Port %[dst_port]
+  http-request add-header X-Forwarded-Proto https if { ssl_fc }
+  cookie HAPROXY_SERVERID insert indirect nocache
+{% for item in groups['jenkins-master-' + zone] %}
+  server jenkins-{{ item }}  {{ item }}:8080  check  cookie {{ item }}
+{% endfor %}
 
 
 backend kibana
